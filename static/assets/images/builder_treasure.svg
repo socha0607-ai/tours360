@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="240" height="60">
+  <defs>
+    <linearGradient id="goldT" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2B2"/>
+      <stop offset="60%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#805B10"/>
+    </linearGradient>
+  </defs>
+  <!-- Crown Insignia -->
+  <path d="M12,42 L12,24 L19,34 L25,14 L31,34 L38,24 L38,42 Z" fill="url(#goldT)" />
+  <circle cx="12" cy="20" r="2.5" fill="#FFF2B2" />
+  <circle cx="25" cy="10" r="3" fill="#FFF2B2" />
+  <circle cx="38" cy="20" r="2.5" fill="#FFF2B2" />
+  <!-- Text -->
+  <text x="52" y="27" font-family="'Playfair Display', serif" font-weight="700" font-size="16" fill="#F8F9FA" letter-spacing="2">TREASURE</text>
+  <text x="53" y="43" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="8" fill="#D4AF37" letter-spacing="3.5">LANDMARKS & GOLF</text>
+</svg>

@@ -1,0 +1,263 @@
+/* ==========================================================================
+   TOURS360.IN — LUXURY OBSIDIAN & GOLD ADMIN CONSOLE STYLES (v2)
+   ========================================================================== */
+
+/* Super High-Z-Index Floating Admin Dock */
+.admin-floating-dock {
+  position: fixed !important;
+  bottom: 22px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 9999999 !important; /* Above all WebGL canvases and full-screen viewers */
+  background: rgba(11, 13, 16, 0.95) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1.5px solid #D4AF37 !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.95), 0 0 30px rgba(212, 175, 55, 0.45) !important;
+  border-radius: 9999px !important;
+  padding: 8px 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  animation: adminDockSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes adminDockSlideUp {
+  from { transform: translate(-50%, 60px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.admin-dock-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Space Grotesk', monospace, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #0B0D10;
+  background: linear-gradient(135deg, #FFF2B2 0%, #D4AF37 50%, #996515 100%);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-dock-btn {
+  background: rgba(21, 25, 33, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #F8F9FA;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 7px 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.admin-dock-btn i {
+  color: #D4AF37;
+  font-size: 0.85rem;
+}
+
+.admin-dock-btn:hover {
+  background: rgba(212, 175, 55, 0.22);
+  border-color: #D4AF37;
+  transform: translateY(-2px);
+  color: #FFFFFF;
+}
+
+.admin-dock-btn-lock {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #FCA5A5;
+}
+
+.admin-dock-btn-lock:hover {
+  background: #EF4444;
+  border-color: #EF4444;
+  color: #FFFFFF;
+}
+
+/* Modals */
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000000;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-modal-box {
+  background: #151921;
+  border: 1.5px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px;
+  position: relative;
+  color: #F8F9FA;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.admin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.admin-modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.45rem;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-close-x {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #CBD5E1;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.admin-close-x:hover {
+  background: #EF4444;
+  color: #FFFFFF;
+}
+
+/* Studio Tabs & Interactive Blueprint Canvas */
+.studio-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.studio-tab-btn {
+  background: rgba(11, 13, 16, 0.6);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #94A3B8;
+  font-family: 'Space Grotesk', monospace, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.studio-tab-btn.active {
+  background: #D4AF37;
+  color: #0B0D10;
+  border-color: #D4AF37;
+}
+
+.blueprint-clickable-stage {
+  position: relative;
+  width: 100%;
+  max-height: 380px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--gold-border);
+  background: #0B0D10;
+  cursor: crosshair;
+}
+
+.blueprint-clickable-stage img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.interactive-marker-dot {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #D4AF37;
+  border: 2px solid #0B0D10;
+  box-shadow: 0 0 16px rgba(212, 175, 55, 1);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: pulseMarker 1.5s infinite;
+}
+
+@keyframes pulseMarker {
+  0% { transform: translate(-50%, -50%) scale(0.9); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+  100% { transform: translate(-50%, -50%) scale(0.9); }
+}
+
+.code-output-box {
+  background: #07090C;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Space Grotesk', monospace, sans-serif;
+  font-size: 0.8rem;
+  color: #34D399;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 180px;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+
+/* Inquiries Table */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-top: 10px;
+}
+
+.admin-table th {
+  background: #0B0D10;
+  color: #D4AF37;
+  font-family: 'Space Grotesk', monospace, sans-serif;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.admin-table td {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #CBD5E1;
+}
+
+@media (max-width: 768px) {
+  .admin-floating-dock {
+    width: calc(100% - 24px) !important;
+    overflow-x: auto !important;
+    border-radius: 16px !important;
+    bottom: 12px !important;
+    padding: 8px 12px !important;
+    justify-content: flex-start !important;
+  }
+}

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
+  <title>Tours360.in — Central India's Premier WebXR & 360° Digital Twin Platform | Indore</title>
+  <meta name="description" content="Central India's (Indore) premier WebXR & 8K 360° Digital Twin platform for luxury real estate developers, architects, and hospitality brands across Super Corridor, AB Bypass, and Vijay Nagar.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230B0D10' stroke='%23D4AF37' stroke-width='6'/><text x='50' y='64' font-size='42' text-anchor='middle' fill='%23D4AF37' font-family='sans-serif' font-weight='bold'>360</text></svg>">
+
+  <!-- Google Fonts: Playfair Display (Luxury Serif), Plus Jakarta Sans (Body), Space Grotesk (Tech / Metrics) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 Pro CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Pannellum 360° WebGL CSS (Local High-Speed Bundle with CDN Fallback) -->
+  <link rel="stylesheet" href="vendor/pannellum.css">
+
+  <!-- Obsidian & Champagne Gold Custom Luxury Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Tours360 Admin Console Stylesheet -->
+  <link rel="stylesheet" href="css/admin.css">
+
+  <style>
+    /* हर डिवाइस पर बिना स्क्रॉल बार के परफेक्ट फिटिंग */
+    .viewer-container {
+      width: 100vw;
+      height: 100dvh; /* Dynamic Viewport Height - मोबाइल एड्रेस बार से कभी नहीं कटेगा */
+      position: relative;
+      overflow: hidden;
+      background-color: #0B0D10;
+    }
+
+    /* मोबाइल पर कंट्रोल्स को अंगूठे के पास (Bottom-Friendly) लाना */
+    @media (max-width: 768px) {
+      .hud-top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px;
+      }
+      .room-carousel {
+        bottom: 72px;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .whatsapp-cta-btn {
+        width: calc(100% - 24px);
+        left: 12px;
+        bottom: 12px;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       STICKY GLASS NAVBAR
+       ======================================================================== -->
+  <header class="navbar-sticky">
+    <div class="nav-container">
+      <a href="#agency" class="brand-logo" onclick="window.Tours360App.openAgencyLanding()">
+        <div class="brand-icon-box">
+          <i class="fas fa-vr-cardboard"></i>
+        </div>
+        <div>
+          <div class="brand-title">TOURS360 <span class="text-gold">|</span> INDORE</div>
+          <div class="brand-sub">CENTRAL INDIA WEBXR TWINS</div>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="#tour/imperial-grand-4bhk/living" class="nav-link"><i class="fas fa-play text-gold" style="font-size: 0.75rem;"></i> Live 360° Demo</a></li>
+          <li><a href="#directorySection" class="nav-link">Builder Portals</a></li>
+          <li><a href="#pillarsSection" class="nav-link">4 Pillars</a></li>
+          <li><a href="#partnersSection" class="nav-link">Partners & Team</a></li>
+          <li><a href="#pricingSection" class="nav-link">Shoot Packages</a></li>
+        </ul>
+      </nav>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="#b/maheshwari-group" class="btn-ghost-gold" style="padding: 9px 18px; font-size: 0.85rem;">
+          <i class="fas fa-building"></i> Builder Portal
+        </a>
+        <button class="btn-gold btn-book-shoot-trigger" style="padding: 9px 20px; font-size: 0.85rem;">
+          <i class="fas fa-calendar-check"></i> Book 48-Hr Shoot
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       VIEW 1: MAIN AGENCY LANDING PAGE (tours360.in)
+       ======================================================================== -->
+  <main id="viewAgency" class="view-section view-active">
+    
+    <!-- Hero Section -->
+    <section class="hero-wrapper">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-badge">
+            <i class="fas fa-star star-icon"></i>
+            <span>CENTRAL INDIA'S PREMIER WEBXR PLATFORM</span>
+          </div>
+
+          <h1 class="hero-title">
+            Don't Just Show Brochures. <br>
+            <span class="text-gold-gradient">Let Buyers Walk Inside</span> From Anywhere in the World.
+          </h1>
+
+          <p class="hero-subtitle">
+            Central India's first 8K WebXR Digital Twin platform for luxury real estate developers, architects, and hospitality brands. Loads in &lt;1.8s on 4G without any app download or VR headset required.
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="#tour/imperial-grand-4bhk/living" class="btn-gold" style="font-size: 1.05rem; padding: 14px 32px;">
+              <i class="fas fa-street-view"></i> Launch Full-Screen 3BHK Demo
+            </a>
+            <a href="#directorySection" class="btn-ghost-gold" style="font-size: 1.05rem; padding: 14px 28px;">
+              <i class="fas fa-compass"></i> Explore Builder Portals
+            </a>
+          </div>
+
+          <div style="margin-top: 32px; display: flex; align-items: center; gap: 16px;">
+            <div style="display: flex; margin-left: 10px;">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--gold-primary); margin-left: -10px; object-fit: cover;" alt="Buyer">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--gold-primary); margin-left: -10px; object-fit: cover;" alt="Buyer">
+              <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--gold-primary); margin-left: -10px; object-fit: cover;" alt="Buyer">
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+              Trusted by <strong>18+ Top Developers</strong> across <span class="text-gold">Super Corridor, AB Bypass & Vijay Nagar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive 360 Auto-Rotating Hero Preview Card -->
+        <div class="hero-preview-card">
+          <div id="heroPannellumCanvas"></div>
+          
+          <div class="hero-preview-overlay">
+            <div class="glass-pill" style="font-size: 0.78rem; color: var(--gold-light);">
+              <i class="fas fa-eye text-gold"></i> Live 360° WebXR Preview
+            </div>
+            <div class="badge-available">
+              <span class="pulse-dot"></span> LIVE 8K ENGINE
+            </div>
+          </div>
+
+          <div class="hero-preview-bottom">
+            <div class="interactive-drag-hint">
+              <i class="fas fa-arrows-alt"></i> Drag to Pan 360° | Double Click to Zoom
+            </div>
+            <a href="#tour/imperial-grand-4bhk/living" id="btnHeroExpand" class="btn-gold hero-expand-btn" style="text-decoration: none;">
+              Expand 360° <i class="fas fa-expand"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Metrics Ribbon -->
+    <section class="metrics-ribbon">
+      <div class="metrics-container">
+        <div class="metric-item">
+          <div class="metric-value">&lt; 1.8s</div>
+          <div class="metric-label">Load Time on Mobile 4G</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">42%</div>
+          <div class="metric-label">Outstation & NRI Traffic</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">3.2x</div>
+          <div class="metric-label">Faster High-Ticket Closures</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">99.9%</div>
+          <div class="metric-label">GCP Cloud Edge Uptime</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 Core Value Pillars Section -->
+    <section id="pillarsSection" class="section-padding">
+      <div class="section-header">
+        <span class="section-tag">ARCHITECTURAL INNOVATIONS</span>
+        <h2 class="section-title">Built Exclusively for Central India's High-Value Developers</h2>
+        <p class="section-desc">
+          PropTech engineered to eliminate site visit drop-offs, engage outstation NRI buyers in the Gulf & US, and close high-ticket sky villas before completion.
+        </p>
+      </div>
+
+      <div class="pillars-grid">
+        <!-- Pillar A -->
+        <div class="pillar-card glass-panel">
+          <div class="pillar-icon-box">
+            <i class="fas fa-sun"></i>
+          </div>
+          <h3 class="pillar-title">AI Day / Sunset / Night Lighting Switcher with Vastu Sun Engine</h3>
+          <p class="pillar-text">
+            Allow discerning buyers to experience exact natural sunlight at 7:00 AM Dawn, 5:45 PM Golden Hour, and 8:30 PM Night Ambient. Features real solar azimuth angles and Ishanya/Purva Vastu verification.
+          </p>
+          <ul class="pillar-feature-list">
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Calculates true East-facing balcony sunrise angles</li>
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Seamless WebGL panorama exposure transitions</li>
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Authentic night cove lighting & Indore skyline view</li>
+          </ul>
+        </div>
+
+        <!-- Pillar B -->
+        <div class="pillar-card glass-panel">
+          <div class="pillar-icon-box">
+            <i class="fas fa-stamp"></i>
+          </div>
+          <h3 class="pillar-title">Google-Sheet Synced Live Inventory ('SOLD OUT' Red Ribbon Engine)</h3>
+          <p class="pillar-text">
+            Sync real-time tower availability directly with your sales CRM or Google Sheet. When Unit 1402 is booked, the 3D twin instantly renders a diagonal crimson 'SOLD OUT' stamp with enquiry lock.
+          </p>
+          <ul class="pillar-feature-list">
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Zero double-booking risks during investor launches</li>
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Creates psychological urgency & social proof for buyers</li>
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> One-click status toggle from sales dashboard</li>
+          </ul>
+        </div>
+
+        <!-- Pillar C -->
+        <div class="pillar-card glass-panel">
+          <div class="pillar-icon-box">
+            <i class="fas fa-gem"></i>
+          </div>
+          <h3 class="pillar-title">Interactive Material Spec Hotspots (Italian Marble & Fittings)</h3>
+          <p class="pillar-text">
+            Never lose value on hidden construction costs. Interactive golden spec pins let buyers tap on Calacatta marble, Kohler sensor fittings, and Schüco acoustic soundproof sliders to verify warranty and grade.
+          </p>
+          <ul class="pillar-feature-list">
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> High-resolution manufacturer spec sheets & certificates</li>
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Sound decibel acoustic reduction ratings (42dB)</li>
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Justifies premium ₹/Sq.Ft. pricing during negotiations</li>
+          </ul>
+        </div>
+
+        <!-- Pillar D -->
+        <div class="pillar-card glass-panel">
+          <div class="pillar-icon-box">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+          <h3 class="pillar-title">Automated 1st-of-Month Buyer Heatmap & PDF Executive Audit</h3>
+          <p class="pillar-text">
+            Gain deep spatial analytics into where buyers spend time. Discover which balcony view captivated Dubai NRIs most, how many seconds they studied the kitchen layout, and export C-suite PDF audits automatically.
+          </p>
+          <ul class="pillar-feature-list">
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> 3D Dwell-time heatmaps & room interaction metrics</li>
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Outstation IP geolocation analytics (Dubai, UK, US, Bengaluru)</li>
+            <li class="pillar-feature-item"><i class="fas fa-check-circle"></i> Automated monthly executive summary delivered to directors</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Client & Builder Sub-Portals Directory Section -->
+    <section id="directorySection" class="section-padding" style="background: rgba(17, 20, 26, 0.4);">
+      <div class="section-header">
+        <span class="section-tag">INDORE LUXURY DIRECTORY</span>
+        <h2 class="section-title">Dedicated Builder Sub-Portals & Digital Twins</h2>
+        <p class="section-desc">
+          Browse verified white-labeled developer portals across Super Corridor, AB Bypass Road, and Scheme 54. Click any builder to view live project inventories and generate print-ready QR codes.
+        </p>
+      </div>
+
+      <div id="agencyBuildersGrid" class="directory-grid">
+        <!-- Dynamically injected via js/app.js -->
+      </div>
+    </section>
+
+    <!-- Partners, Allies & Core Team Section -->
+    <section id="partnersSection" class="section-padding">
+      <div class="section-header">
+        <span class="section-tag">COLLABORATION NETWORK</span>
+        <h2 class="section-title">Partners, Architectural Allies & Core Team</h2>
+        <p class="section-desc">
+          Powered by leading architectural consultants, DGCA-certified drone photogrammetry pilots, and Matterport Pro3 specialists across Central India.
+        </p>
+      </div>
+
+      <!-- Dynamic Tabs -->
+      <div class="tabs-header">
+        <button class="tab-btn partner-tab-btn active" data-tab="developers">
+          <i class="fas fa-city"></i> Developer Partners
+        </button>
+        <button class="tab-btn partner-tab-btn" data-tab="architects">
+          <i class="fas fa-drafting-compass"></i> Architectural Allies
+        </button>
+        <button class="tab-btn partner-tab-btn" data-tab="team">
+          <i class="fas fa-users-cog"></i> Core Team & Shooters
+        </button>
+      </div>
+
+      <div id="partnersGrid" class="partners-grid">
+        <!-- Dynamically injected via js/app.js -->
+      </div>
+    </section>
+
+    <!-- Shoot Packages & Pricing Section -->
+    <section id="pricingSection" class="section-padding" style="background: rgba(17, 20, 26, 0.5);">
+      <div class="section-header">
+        <span class="section-tag">TRANSPARENT PROPOSITION</span>
+        <h2 class="section-title">48-Hour Capture Packages for Indore Developers</h2>
+        <p class="section-desc">
+          Turnaround within 48 hours of on-site capture. Seamlessly embedded into your website, CRM, hoarding QR codes, and sales center tablets.
+        </p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Starter Tier -->
+        <div class="pricing-card glass-panel">
+          <div>
+            <div class="pricing-tag">SAMPLE FLAT DIGITAL TWIN</div>
+            <div class="pricing-amount">₹ 45,000</div>
+            <div class="pricing-term">Per Sample Apartment / Show Flat</div>
+            <ul class="pricing-features">
+              <li><i class="fas fa-check"></i> Complete 360° HDR 8K Matterport Walkthrough</li>
+              <li><i class="fas fa-check"></i> Day / Sunset / Night Lighting Switcher</li>
+              <li><i class="fas fa-check"></i> 8 Custom Material Spec Hotspots</li>
+              <li><i class="fas fa-check"></i> 2D Floor Plan Navigation Sync</li>
+              <li><i class="fas fa-check"></i> 1 Year High-Speed Cloud Hosting</li>
+            </ul>
+          </div>
+          <button class="btn-ghost-gold btn-book-shoot-trigger" style="width: 100%;">
+            Book Starter Shoot
+          </button>
+        </div>
+
+        <!-- Featured Tier -->
+        <div class="pricing-card glass-panel featured">
+          <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--gold-gradient); color: #0B0D10; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 800; padding: 4px 16px; border-radius: 9999px;">
+            MOST POPULAR IN INDORE
+          </div>
+          <div>
+            <div class="pricing-tag">LUXURY TOWER & AMENITIES</div>
+            <div class="pricing-amount">₹ 1,20,000</div>
+            <div class="pricing-term">Sample Flat + Club House + Drone LiDAR Views</div>
+            <ul class="pricing-features">
+              <li><i class="fas fa-check"></i> 3 Sample Flats (2BHK, 3BHK, 4BHK)</li>
+              <li><i class="fas fa-check"></i> Rooftop Club, Infinity Pool & Banquet Twin</li>
+              <li><i class="fas fa-check"></i> DGCA-Certified Aerial Drone Balcony Views</li>
+              <li><i class="fas fa-check"></i> White-Labeled Builder Sub-Portal Integration</li>
+              <li><i class="fas fa-check"></i> Google Sheets Live Inventory Sold-Out Engine</li>
+              <li><i class="fas fa-check"></i> Print-Ready Vector Hoarding QR Codes</li>
+            </ul>
+          </div>
+          <button class="btn-gold btn-book-shoot-trigger" style="width: 100%;">
+            Book Tower Shoot
+          </button>
+        </div>
+
+        <!-- Enterprise Tier -->
+        <div class="pricing-card glass-panel">
+          <div>
+            <div class="pricing-tag">TOWNSHIP & GOLF MASTER</div>
+            <div class="pricing-amount">₹ 2,75,000</div>
+            <div class="pricing-term">Sprawling Multi-Acre Township & Villas</div>
+            <ul class="pricing-features">
+              <li><i class="fas fa-check"></i> Up to 8 Independent Villa & Penthouse Twins</li>
+              <li><i class="fas fa-check"></i> 3D Gaussian Splatting of Sprawling Golf/Park</li>
+              <li><i class="fas fa-check"></i> Full Sales Team CRM Training on iPad</li>
+              <li><i class="fas fa-check"></i> Monthly NRI Buyer Heatmap & PDF Reports</li>
+              <li><i class="fas fa-check"></i> 24/7 Dedicated Concierge & Priority Edits</li>
+            </ul>
+          </div>
+          <button class="btn-ghost-gold btn-book-shoot-trigger" style="width: 100%;">
+            Enquire Township Suite
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div>
+          <div class="brand-title" style="margin-bottom: 8px;">TOURS360 <span class="text-gold">|</span> INDORE</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 18px;">
+            Central India's benchmark WebXR PropTech studio creating high-fidelity digital twins for luxury real estate, architectural firms, and marquee hospitality.
+          </p>
+          <div style="font-family: var(--font-mono); font-size: 0.78rem; color: #10B981;">
+            <i class="fas fa-shield-alt"></i> MPRERA Registered Tech Partner (MP-TECH-2024-089)
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size: 1rem; color: #FFFFFF; margin-bottom: 16px; font-weight: 700;">Indore Key Enclaves</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--text-muted);">
+            <li>Super Corridor (TCS & Infosys Zone)</li>
+            <li>AB Bypass Road (Bicholi Mardana)</li>
+            <li>Vijay Nagar & Scheme 54 / 78</li>
+            <li>Rau Pithampur Highway Luxury Villas</li>
+            <li>Ujjain Simhastha Luxury Corridor</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="font-size: 1rem; color: #FFFFFF; margin-bottom: 16px; font-weight: 700;">Platform Surfaces</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--text-muted);">
+            <li><a href="#agency" style="color: inherit; text-decoration: none;">Main Agency Portal</a></li>
+            <li><a href="#b/maheshwari-group" style="color: inherit; text-decoration: none;">Builder White-Label Sub-UIs</a></li>
+            <li><a href="#tour/imperial-grand-4bhk/living" style="color: inherit; text-decoration: none;">Pannellum 360° WebXR Engine</a></li>
+            <li><a href="#tour/imperial-grand-4bhk/balcony" style="color: inherit; text-decoration: none;">East Sunrise Balcony Spec View</a></li>
+            <li><a href="#" class="btn-book-shoot-trigger" style="color: var(--gold-primary); text-decoration: none;">Schedule 48-Hr Shoot</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="font-size: 1rem; color: #FFFFFF; margin-bottom: 16px; font-weight: 700;">Indore Studio & Lab</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px;">
+            Level 4, Brilliant Convention Centre,<br>
+            Scheme 78, Vijay Nagar, Indore - 452010
+          </p>
+          <div style="font-size: 0.88rem; color: var(--gold-light); margin-bottom: 8px;">
+            <i class="fas fa-phone-alt text-gold"></i> +91 82610 98681
+          </div>
+          <div style="font-size: 0.88rem; color: var(--gold-light);">
+            <i class="fas fa-envelope text-gold"></i> kamlesh06ambadare@mail.com
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Tours360.in. All Rights Reserved. Engineered for luxury real estate.</div>
+        <div style="display: flex; gap: 20px;">
+          <a href="#" class="btn-book-shoot-trigger" style="color: inherit; text-decoration: none;">Privacy Policy</a>
+          <a href="#" class="btn-book-shoot-trigger" style="color: inherit; text-decoration: none;">Terms of Twin Licensing</a>
+          <a href="#" class="btn-book-shoot-trigger" style="color: inherit; text-decoration: none;">RERA MP Tech Compliance</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ========================================================================
+       VIEW 2: DEDICATED BUILDER SUB-UI PORTAL (/b/[builder-slug])
+       ======================================================================== -->
+  <main id="viewBuilder" class="view-section">
+    <div class="builder-portal-wrapper">
+      
+      <!-- Builder Navigation Bar / Breadcrumb -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <a href="#agency" class="hud-back-btn" onclick="window.Tours360App.openAgencyLanding()">
+          <i class="fas fa-arrow-left"></i> Back to Tours360 Directory
+        </a>
+        <div class="glass-pill" style="font-size: 0.8rem; color: var(--gold-light);">
+          <i class="fas fa-lock text-gold"></i> Official White-Labeled Developer Portal
+        </div>
+      </div>
+
+      <!-- Builder Header Banner -->
+      <div class="builder-header-banner glass-panel">
+        <div class="builder-brand-info">
+          <img id="builderPortalLogo" src="" alt="Builder Logo" class="builder-portal-logo">
+          <div>
+            <h1 id="builderPortalName" class="font-heading" style="font-size: 2.2rem; color: #FFFFFF; margin-bottom: 4px;"></h1>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+              <span id="builderPortalRera" class="builder-rera" style="margin-bottom: 0;"></span>
+              <span id="builderPortalLocation" style="font-size: 0.85rem; color: var(--text-muted);"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="builder-contact-actions">
+          <a id="builderCallSalesBtn" href="#" class="btn-ghost-gold">
+            <i class="fas fa-phone-alt"></i> Call Sales Head
+          </a>
+          <a id="builderWhatsappBtn" href="#" target="_blank" class="btn-whatsapp">
+            <i class="fab fa-whatsapp"></i> WhatsApp Site Office
+          </a>
+        </div>
+      </div>
+
+      <!-- Builder Key Stats Pill Container -->
+      <div id="builderStatsContainer" style="display: flex; gap: 14px; margin-bottom: 30px; flex-wrap: wrap;">
+        <!-- Injected via app.js -->
+      </div>
+
+      <!-- Filterable Project Inventory Grid -->
+      <div class="filter-bar">
+        <div class="filter-chips">
+          <button class="filter-chip active" data-filter="all">All Units</button>
+          <button class="filter-chip" data-filter="available">Available Now</button>
+          <button class="filter-chip" data-filter="soldout">Sold Out Showcase</button>
+          <button class="filter-chip" data-filter="3BHK">3BHK Units</button>
+          <button class="filter-chip" data-filter="4BHK">4BHK Suites</button>
+          <button class="filter-chip" data-filter="Villas">Villas & Estates</button>
+          <button class="filter-chip" data-filter="Penthouses">Penthouses</button>
+        </div>
+
+        <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">
+          <i class="fas fa-sync text-gold"></i> Live Google Sheet Inventory Sync
+        </div>
+      </div>
+
+      <!-- Projects Grid -->
+      <div id="builderProjectsGrid" class="projects-grid">
+        <!-- Dynamically injected via js/app.js -->
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================
+       VIEW 3: FULL-SCREEN 360° DIGITAL TWIN VIEWER (Pannellum JS)
+       ======================================================================== -->
+  <div id="viewTour" class="view-section tour-viewer-wrapper viewer-container">
+    
+    <!-- Mobile Orientation Advisory Banner -->
+    <div id="mobileRotateBanner" class="mobile-rotate-banner">
+      <div class="rotate-icon-pulse">
+        <i class="fas fa-sync-alt fa-spin"></i>
+      </div>
+      <div class="rotate-text-box">
+        <div class="rotate-title"> Rotate your device for the best 360° experience.</div>
+        <div class="rotate-sub"> Best for full-screen immersive view</div>
+      </div>
+      <button id="dismissRotateBanner" class="btn-dismiss-rotate" aria-label="Close">&times;</button>
+    </div>
+
+    <!-- Fullscreen Pannellum Container -->
+    <div id="fullscreenPannellumContainer"></div>
+
+    <!-- Top-Left HUD Overlay -->
+    <div class="hud-top-left hud-top-bar">
+      <button id="btnExitTourViewer" class="hud-back-btn">
+        <i class="fas fa-arrow-left"></i> Exit to Portal
+      </button>
+
+      <div class="hud-panel">
+        <h2 id="hudProjectTitle" class="hud-project-title">The Imperial Grand — 4BHK Sky Suite</h2>
+        <div id="hudRoomTitle" class="hud-room-title">
+          <i class="fas fa-cube text-gold"></i> Grand Living Room & Foyer
+        </div>
+
+        <div class="hud-clock-row">
+          <div id="hudDigitalClock" class="hud-clock">
+            <i class="far fa-clock text-gold"></i> 07:00 AM IST
+          </div>
+          <div class="hud-vastu-badge">
+            <i class="fas fa-compass"></i> Vastu Verified
+          </div>
+        </div>
+
+        <div id="hudSunOrientation" class="hud-sun-orientation-box">
+          East Facing Balcony | Sunrise: 06:12 AM | Sunset: 06:04 PM
+        </div>
+      </div>
+    </div>
+
+    <!-- Top-Right HUD Overlay: Day / Sunset / Night Lighting Switcher -->
+    <div class="hud-top-right">
+      <div class="lighting-pill">
+        <button class="lighting-btn active" data-mode="day">
+          <span>☀️</span> Day 7:00 AM
+        </button>
+        <button class="lighting-btn" data-mode="sunset">
+          <span>🌅</span> Sunset 5:45 PM
+        </button>
+        <button class="lighting-btn" data-mode="night">
+          <span>🌙</span> Night 8:30 PM
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom HUD Bar: Room Thumbnails Carousel & Floating WhatsApp CTA -->
+    <div class="hud-bottom-bar">
+      <!-- Room Thumbnail Carousel -->
+      <div id="hudRoomCarousel" class="room-carousel-container room-carousel">
+        <!-- Dynamic scene buttons injected via js/app.js -->
+      </div>
+
+      <!-- Quick Action Controls & Floating WhatsApp CTA -->
+      <div class="hud-actions-right">
+        <button id="hudFloorplanBtn" class="hud-tool-btn" title="Interactive 2D Architectural Floor Plan">
+          <i class="fas fa-map"></i>
+        </button>
+        <button id="hudAudioBtn" class="hud-tool-btn" title="Toggle Ambient Audio Experience">
+          <i class="fas fa-volume-mute"></i>
+        </button>
+        <button id="hudFullscreenToggle" class="hud-tool-btn" title="Toggle Fullscreen">
+          <i class="fas fa-expand"></i>
+        </button>
+        <a id="hudWhatsappCTA" href="#" target="_blank" class="btn-whatsapp whatsapp-cta-btn" style="padding: 12px 24px; font-size: 0.95rem;">
+          <i class="fab fa-whatsapp" style="font-size: 1.15rem;"></i>
+          <span>Chat with Site Manager</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================
+       MODAL: MATERIAL SPECIFICATIONS POPUP
+       ======================================================================== -->
+  <div id="modalSpec" class="modal-overlay">
+    <div class="modal-container">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-body">
+        <img id="specModalImg" src="" alt="Spec Detail" class="spec-modal-img">
+        <div id="specModalTag" class="spec-modal-tag">FLOORING SPECIFICATION</div>
+        <h3 id="specModalTitle" class="spec-modal-title">Simpolo 4x2 Italian Glazed Marble</h3>
+        <div id="specModalBrand" class="spec-modal-brand-badge">
+          <i class="fas fa-award text-gold"></i> Simpolo Ceramica
+        </div>
+
+        <div class="spec-modal-meta-grid">
+          <div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase;">Certification</div>
+            <div id="specModalWarranty" style="font-family: var(--font-mono); font-weight: 700; color: var(--gold-light); font-size: 0.9rem;">25-Year Sheen Warranty</div>
+          </div>
+          <div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase;">Acoustic / Friction</div>
+            <div style="font-family: var(--font-mono); font-weight: 700; color: #10B981; font-size: 0.9rem;">R10 Anti-Skid Nano</div>
+          </div>
+        </div>
+
+        <p id="specModalDesc" class="spec-modal-desc"></p>
+
+        <button class="btn-gold modal-close-btn-inline modal-close-btn" style="position: static; width: 100%; border-radius: 8px;">
+          Back to 360° Walkthrough
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: REAL SCANNABLE QR CODE GENERATOR
+       ======================================================================== -->
+  <div id="modalQR" class="modal-overlay">
+    <div class="modal-container" style="max-width: 480px; text-align: center;">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-body">
+        <div class="hero-badge" style="margin-bottom: 12px;">
+          <i class="fas fa-qrcode text-gold"></i>
+          <span>PRINT-READY DIGITAL TWIN QR</span>
+        </div>
+        <h3 id="qrModalProjectName" class="font-heading" style="font-size: 1.5rem; color: #FFFFFF; margin-bottom: 6px;"></h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+          Scan with any iPhone or Android camera to walk inside this exact unit instantly on 4G.
+        </p>
+
+        <div class="qr-display-box">
+          <img id="qrDisplayImage" src="" alt="Digital Twin QR Code">
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+          <button id="qrCopyLinkBtn" class="btn-ghost-gold" style="flex: 1;">
+            <i class="fas fa-copy"></i> Copy Link
+          </button>
+          <button id="qrDownloadBtn" class="btn-gold" style="flex: 1.2;">
+            <i class="fas fa-download"></i> Download QR
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: 48-HOUR DEMO SHOOT BOOKING
+       ======================================================================== -->
+  <div id="modalBooking" class="modal-overlay">
+    <div class="modal-container">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-body">
+        <div class="hero-badge" style="margin-bottom: 12px;">
+          <i class="fas fa-camera text-gold"></i>
+          <span>INDORE ON-SITE CAPTURE CONCIERGE</span>
+        </div>
+        <h3 class="font-heading" style="font-size: 1.7rem; color: #FFFFFF; margin-bottom: 8px;">Book 48-Hour Demo Shoot</h3>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">
+          Our DGCA-certified Matterport Pro3 & Drone LiDAR crew will capture your sample flat or tower in Indore. Preview your WebXR twin within 48 hours.
+        </p>
+
+        <form id="bookingShootForm">
+          <div class="form-group">
+            <label class="form-label">Developer / Real Estate Brand Name</label>
+            <input type="text" id="bookDeveloperName" class="form-control" placeholder="e.g. Maheshwari Developers / Apollo Realty" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Project Name & Unit Type</label>
+            <input type="text" id="bookProjectName" class="form-control" placeholder="e.g. Skyline Towers (3BHK Sample Flat)" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label class="form-label">Project Location in Indore</label>
+              <select id="bookLocation" class="form-control" required>
+                <option value="Super Corridor">Super Corridor (Near TCS/Infosys)</option>
+                <option value="AB Bypass Road">AB Bypass Road / Bicholi Mardana</option>
+                <option value="Vijay Nagar">Vijay Nagar / Scheme 54 / 78</option>
+                <option value="Rau Bypass">Rau / Pithampur Road</option>
+                <option value="Ujjain Simhastha">Indore-Ujjain Highway</option>
+                <option value="Other MP">Other Central India Location</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estimated Carpet Area</label>
+              <input type="text" id="bookCarpet" class="form-control" placeholder="e.g. 2,400 Sq.Ft.">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label class="form-label">Contact Person & Designation</label>
+              <input type="text" id="bookContactName" class="form-control" placeholder="e.g. Sales Director" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">WhatsApp Contact Number</label>
+              <input type="tel" id="bookContactPhone" class="form-control" placeholder="+91 82610 98681" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-gold" style="width: 100%; padding: 14px; margin-top: 10px;">
+            <i class="fas fa-check-circle"></i> Confirm 48-Hour Shoot Request
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: ADD CLIENT / TEAMMATE DYNAMICALLY
+       ======================================================================== -->
+  <div id="modalAddPartner" class="modal-overlay">
+    <div class="modal-container">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-body">
+        <div class="hero-badge" style="margin-bottom: 12px;">
+          <i class="fas fa-user-plus text-gold"></i>
+          <span>DYNAMIC ROSTER ADDITION</span>
+        </div>
+        <h3 class="font-heading" style="font-size: 1.6rem; color: #FFFFFF; margin-bottom: 8px;">Add Client Partner / Teammate</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px;">
+          Append a new developer partner, architectural ally, or field 360° capture specialist directly into the live application data.
+        </p>
+
+        <form id="addPartnerForm">
+          <div class="form-group">
+            <label class="form-label">Select Category</label>
+            <select id="addPartnerType" class="form-control" required>
+              <option value="developers">Developer & Channel Partner</option>
+              <option value="architects">Architectural & Interior Design Ally</option>
+              <option value="team">Core Team & 360° Capture Specialist</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Entity or Person Name</label>
+            <input type="text" id="addPartnerName" class="form-control" placeholder="e.g. Suncity Infratech / Ar. Kunal Mehta" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label class="form-label">Role or Specialty</label>
+              <input type="text" id="addPartnerRole" class="form-control" placeholder="e.g. Ultra-Luxury Penthouse Developer" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">City / Territory</label>
+              <input type="text" id="addPartnerCity" class="form-control" placeholder="e.g. Indore (Super Corridor)" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Avatar / Logo Image URL (Optional)</label>
+            <input type="url" id="addPartnerAvatar" class="form-control" placeholder="https://images.unsplash.com/...">
+          </div>
+
+          <button type="submit" class="btn-gold" style="width: 100%; padding: 14px; margin-top: 10px;">
+            <i class="fas fa-plus-circle"></i> Add to Active Roster
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: 2D ARCHITECTURAL FLOOR PLAN WITH INTERACTIVE PINS
+       ======================================================================== -->
+  <div id="modalFloorplan" class="modal-overlay">
+    <div class="modal-container" style="max-width: 840px;">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-body" style="padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <h3 class="font-heading" style="font-size: 1.4rem; color: #FFFFFF;">Architectural Layout & Vastu Compass</h3>
+            <p style="font-size: 0.82rem; color: var(--gold-light);">Click on any room pin to jump inside the 360° Digital Twin</p>
+          </div>
+          <div class="badge-available">
+            <span class="pulse-dot"></span> LIVE PINS
+          </div>
+        </div>
+
+        <div style="width: 100%; height: 460px; border-radius: 12px; overflow: hidden; border: 1px solid var(--gold-border);">
+          <object data="assets/images/floorplan.svg" type="image/svg+xml" style="width: 100%; height: 100%; display: block;"></object>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       TOAST FEEDBACK CONTAINER
+       ======================================================================== -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ========================================================================
+       SCRIPTS: PANNELLUM 360 WEBGL & APPLICATION LOGIC
+       ======================================================================== -->
+  <script src="vendor/pannellum.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <!-- Tours360 Admin Console Engine -->
+  <script src="js/admin.js"></script>
+
+  <!-- स्क्रीन के रेश्यो (Mobile 9:16 vs PC 16:9) के हिसाब से सही HFOV तय करना -->
+  <script>
+    function getOptimalHfov() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const aspect = width / height;
+
+      if (aspect < 0.75) return 72;       // Mobile Portrait (9:16)
+      if (aspect < 1.2) return 90;        // Tablet / Foldable (4:3)
+      return 110;                         // PC / Laptop Widescreen (16:9)
+    }
+
+    // जब यूजर फोन को सीधा से आड़ा (Portrait to Landscape) घुमाए या विंडो रीसाइज करे
+    window.addEventListener('resize', () => {
+      if (window.panoViewer) {
+        window.panoViewer.setHfov(getOptimalHfov());
+        window.panoViewer.resize();
+      }
+    });
+
+    // Mobile orientationchange fallback
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        if (window.panoViewer) {
+          window.panoViewer.setHfov(getOptimalHfov());
+          window.panoViewer.resize();
+        }
+      }, 100);
+    });
+  </script>
+</body>
+</html>

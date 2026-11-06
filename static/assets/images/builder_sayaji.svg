@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="240" height="60">
+  <defs>
+    <linearGradient id="goldSay" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF5D6"/>
+      <stop offset="50%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#B28929"/>
+    </linearGradient>
+  </defs>
+  <!-- 5-Star Hospitality Star Cluster -->
+  <polygon points="25,12 28,21 38,21 30,27 33,36 25,31 17,36 20,27 12,21 22,21" fill="url(#goldSay)" />
+  <circle cx="10" cy="42" r="1.5" fill="#D4AF37" />
+  <circle cx="17" cy="42" r="1.5" fill="#D4AF37" />
+  <circle cx="25" cy="42" r="2.0" fill="#D4AF37" />
+  <circle cx="33" cy="42" r="1.5" fill="#D4AF37" />
+  <circle cx="40" cy="42" r="1.5" fill="#D4AF37" />
+  <!-- Text -->
+  <text x="52" y="28" font-family="'Playfair Display', serif" font-weight="700" font-size="16" fill="#F8F9FA" letter-spacing="2">SAYAJI</text>
+  <text x="53" y="44" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="8" fill="#D4AF37" letter-spacing="3">HOTELS & SUITES</text>
+</svg>

@@ -1,0 +1,31 @@
+Here is how you can run the Tours360 Web Application:
+  ──────
+  ### 1. Run using Production Go Server:
+
+  In your terminal, run:
+
+    cd /home/admin01/tours360 && go run main.go
+
+    # Or run the pre-compiled binary:
+    ./tours360
+
+  ### 2. Run with Docker:
+
+    docker build -t tours360 .
+    docker run -p 8080:8080 tours360
+
+  ### 3. Open in your browser:
+
+  • Main Agency: http://localhost:8080/
+  • Builder Portal: http://localhost:8080/b/maheshwari-group
+  • 360° Digital Twin: http://localhost:8080/view/imperial-grand-4bhk
+  • JSON API: http://localhost:8080/api/data
+
+  (To stop the server anytime, press Ctrl + C in that terminal).
+  ──────
+  ### 4. To start Antigravity again from your terminal:
+
+  Simply run:
+
+    agy
+

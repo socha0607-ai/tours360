@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="240" height="60">
+  <defs>
+    <linearGradient id="goldS" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E2F5D7"/>
+      <stop offset="50%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#D4AF37"/>
+    </linearGradient>
+  </defs>
+  <!-- Biophilic Leaf & Courtyard Portal -->
+  <path d="M25,12 C35,20 35,36 25,46 C15,36 15,20 25,12 Z" fill="none" stroke="url(#goldS)" stroke-width="2.5" />
+  <circle cx="25" cy="29" r="4" fill="#10B981" />
+  <!-- Text -->
+  <text x="52" y="28" font-family="'Playfair Display', serif" font-weight="700" font-size="16" fill="#F8F9FA" letter-spacing="2">SHREEM</text>
+  <text x="53" y="44" font-family="'Space Grotesk', sans-serif" font-weight="600" font-size="8" fill="#10B981" letter-spacing="3">COURTYARD VILLAS</text>
+</svg>

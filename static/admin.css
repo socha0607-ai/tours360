@@ -1,0 +1,156 @@
+/* Modal Backdrop */
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* Modal Content Card */
+.admin-modal-content {
+  background: #121212;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: #fff;
+  padding: 20px;
+  font-family: sans-serif;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.admin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #262626;
+  padding-bottom: 12px;
+}
+
+.admin-modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #e5a93b;
+}
+
+.admin-close-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.admin-section {
+  margin-top: 18px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 16px;
+}
+
+.admin-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #999;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+  color: #ccc;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  background: #1c1c1c;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.admin-save-btn, .admin-reset-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-save-btn {
+  background: #e5a93b;
+  color: #000;
+  margin-top: 5px;
+}
+
+.admin-reset-btn {
+  background: #2a2a2a;
+  color: #ff6b6b;
+}
+
+/* Toggle Switch Styling */
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #333;
+  transition: .3s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #e5a93b;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
