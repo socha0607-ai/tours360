@@ -135,7 +135,31 @@
         "Direct High-Speed Private Elevator",
         "Simpolo Calacatta 4x2 Italian Glazed Marble",
         "Hafele Soft-Close European Kitchen"
-      ]
+      ],
+      "floorplan": {
+        "northAngle": 15,
+        "floors": [
+          {
+            "floorId": "ground",
+            "floorLabel": "Ground Floor — Grand Foyer, Living, Porch & Lawn",
+            "blueprintSrc": "assets/images/floorplan.svg",
+            "pins": [
+              { "sceneId": "living", "title": "Living & Dining Foyer", "x": 31, "y": 36, "vastu": "ईशान्य (NE)" },
+              { "sceneId": "kitchen", "title": "Chef's Kitchen", "x": 24, "y": 75, "vastu": "आग्नेय (SE)" },
+              { "sceneId": "balcony", "title": "East Porch & Lawn", "x": 71, "y": 36, "vastu": "पूर्व (East)" }
+            ]
+          },
+          {
+            "floorId": "first",
+            "floorLabel": "First Floor — Master Suite, Kids Lounge & Deck",
+            "blueprintSrc": "assets/images/floorplan.svg",
+            "pins": [
+              { "sceneId": "master", "title": "Master Presidential Suite", "x": 68, "y": 75, "vastu": "नैऋत्य (SW)" },
+              { "sceneId": "balcony", "title": "Upper Sky Deck", "x": 71, "y": 36, "vastu": "पूर्व (East)" }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "p-imperial-5bhk-duplex",

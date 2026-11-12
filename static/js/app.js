@@ -836,6 +836,110 @@
 
   function openFloorplanModal() {
     if (!dom.modalFloorplan) return;
+
+    const project = window.TOURS360_DATA.getProject(state.currentProjectSlug);
+    const scrollContainer = document.getElementById("multiFloorScrollContainer");
+    const quickNav = document.getElementById("floorQuickNav");
+    if (!scrollContainer || !quickNav) return;
+
+    scrollContainer.innerHTML = "";
+    quickNav.innerHTML = "";
+
+    // Check if project has custom multi-floor data, otherwise fallback to Default SVG
+    const fp = project?.floorplan;
+    if (!fp || !fp.floors || fp.floors.length === 0) {
+      // Default Fallback: Load the standard interactive SVG
+      scrollContainer.innerHTML = `
+        <div class="floor-section-card">
+          <div class="floor-section-header">
+            <div class="floor-section-title"><i class="fas fa-layer-group text-gold"></i> Standard Vastu Floor Plan</div>
+          </div>
+          <div style="width: 100%; height: 460px;">
+            <object data="assets/images/floorplan.svg" type="image/svg+xml" style="width: 100%; height: 100%; display: block;"></object>
+          </div>
+        </div>
+      `;
+      dom.modalFloorplan.classList.add("modal-open");
+      return;
+    }
+
+    // Render Each Floor (Ground, 1st, 2nd, etc.)
+    const northAngle = fp.northAngle || 0;
+
+    fp.floors.forEach((floor, index) => {
+      const floorDomId = `floor-card-${floor.floorId || index}`;
+
+      // 1. Add Quick Scroll Pill in Sticky Header
+      const pill = document.createElement("button");
+      pill.className = `floor-quick-pill ${index === 0 ? 'active' : ''}`;
+      pill.textContent = floor.floorLabel.split("—")[0].trim();
+      pill.onclick = () => {
+        document.querySelectorAll(".floor-quick-pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        document.getElementById(floorDomId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+      quickNav.appendChild(pill);
+
+      // 2. Build Floor Section Card
+      const card = document.createElement("div");
+      card.id = floorDomId;
+      card.className = "floor-section-card";
+
+      card.innerHTML = `
+        <div class="floor-section-header">
+          <div class="floor-section-title">
+            <i class="fas fa-layer-group text-gold"></i> ${floor.floorLabel}
+          </div>
+          <span style="font-family: 'Space Grotesk'; font-size: 0.72rem; color: #94A3B8;">Floor ${index + 1} of ${fp.floors.length}</span>
+        </div>
+        <div class="floor-svg-stage" id="stage-${floorDomId}">
+          <!-- Blueprint Image or SVG -->
+          <img src="${floor.blueprintSrc}" alt="${floor.floorLabel}" class="floor-blueprint-media">
+          
+          <!-- Auto-Rotated Vastu Compass Overlay -->
+          <div class="floor-vastu-compass" style="transform: rotate(${northAngle}deg);">
+            <svg viewBox="0 0 100 100" width="100%" height="100%">
+              <circle cx="50" cy="50" r="46" fill="rgba(11, 13, 16, 0.85)" stroke="#D4AF37" stroke-width="2"/>
+              <polygon points="50,12 56,42 44,42" fill="#EF4444"/>
+              <polygon points="50,88 56,58 44,58" fill="#94A3B8"/>
+              <text x="50" y="24" fill="#EF4444" font-family="'Space Grotesk'" font-size="12" font-weight="bold" text-anchor="middle">N</text>
+              <text x="82" y="54" fill="#D4AF37" font-family="'Space Grotesk'" font-size="11" font-weight="bold">E</text>
+              <text x="50" y="82" fill="#94A3B8" font-family="'Space Grotesk'" font-size="11" font-weight="bold" text-anchor="middle">S</text>
+              <text x="18" y="54" fill="#94A3B8" font-family="'Space Grotesk'" font-size="11" font-weight="bold">W</text>
+            </svg>
+          </div>
+        </div>
+      `;
+
+      scrollContainer.appendChild(card);
+
+      // 3. Inject Interactive Room Pins onto this Floor Stage
+      const stage = card.querySelector(`#stage-${floorDomId}`);
+      (floor.pins || []).forEach(pin => {
+        const isCurrentRoom = pin.sceneId === state.currentSceneId;
+        const pinEl = document.createElement("div");
+        pinEl.className = "floor-pin-marker";
+        pinEl.style.left = `${pin.x}%`;
+        pinEl.style.top = `${pin.y}%`;
+
+        pinEl.innerHTML = `
+          <div class="floor-pin-dot ${isCurrentRoom ? 'active-room' : ''}">
+            <i class="fas ${isCurrentRoom ? 'fa-street-view' : 'fa-vr-cardboard'}"></i>
+          </div>
+          <div class="floor-pin-label">
+            ${pin.title} ${pin.vastu ? `<span style="color:#D4AF37;">(${pin.vastu})</span>` : ''}
+          </div>
+        `;
+
+        pinEl.onclick = () => {
+          closeAllModals();
+          switchScene(pin.sceneId);
+        };
+
+        stage.appendChild(pinEl);
+      });
+    });
+
     dom.modalFloorplan.classList.add("modal-open");
   }
 
