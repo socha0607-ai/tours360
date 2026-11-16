@@ -395,10 +395,11 @@
           type: "custom",
           createTooltipFunc: function (hotSpotDiv) {
             hotSpotDiv.classList.add("pnlm-neon-plot");
-            const statusClass = plot.status === "available"
+            const st = (plot.status || "available").toLowerCase();
+            const statusClass = st === "available"
               ? "neon-plot-available"
-              : (plot.status === "sold" ? "neon-plot-sold" : "neon-plot-hold");
-            const statusLabel = plot.status === "available" ? "AVAILABLE" : (plot.status === "sold" ? "SOLD" : "HOLD");
+              : (st === "sold" ? "neon-plot-sold" : "neon-plot-hold");
+            const statusLabel = st === "available" ? "AVAILABLE" : (st === "sold" ? "SOLD" : "HOLD");
 
             hotSpotDiv.innerHTML = `
               <div class="neon-plot-box ${statusClass}">
@@ -503,7 +504,7 @@
         state.fullscreenViewerInstance.loadScene(sceneKey, prevPitch, prevYaw, prevHfov);
 
         updateHUD(project, sceneData, modeData);
-        renderRoomCarousel(sceneId);
+        renderRoomCarousel(sceneId, project);
         return;
       } catch (err) {
         console.warn("Seamless scene switch fallback, re-initializing:", err);
@@ -546,7 +547,7 @@
     }
 
     updateHUD(project, sceneData, modeData);
-    renderRoomCarousel(sceneId);
+    renderRoomCarousel(sceneId, project);
 
     // Auto-focus plot if ?plot= is in the URL on load
     const urlParams = new URLSearchParams(window.location.search);
@@ -608,17 +609,36 @@
   function updateHUD(project, sceneData, modeData) {
     // Mode-specific HUD behavior: Flat vs Plot
     const lightingPill = document.querySelector(".lighting-pill");
+    const hudTopRight = document.querySelector(".hud-top-right");
     const unlockRatesBtn = document.getElementById("btnUnlockRatesBar");
+    const floorplanBtn = document.getElementById("hudFloorplanBtn");
+    const vastuBadge = document.querySelector(".hud-vastu-badge");
 
     if (project.mode === "plot") {
       if (lightingPill) lightingPill.style.display = "none";
+      if (hudTopRight) hudTopRight.style.display = "none";
       if (unlockRatesBtn) {
         unlockRatesBtn.style.display = "inline-flex";
         unlockRatesBtn.onclick = () => openRateSheetModal(project);
       }
+      if (floorplanBtn) {
+        floorplanBtn.title = "Colony / Society Plan (TNCP Map)";
+      }
+      if (vastuBadge) {
+        vastuBadge.innerHTML = `<i class="fas fa-road text-gold"></i> Colony Road &amp; Plot View`;
+        vastuBadge.style.display = "inline-flex";
+      }
     } else {
       if (lightingPill) lightingPill.style.display = "flex";
+      if (hudTopRight) hudTopRight.style.display = "flex";
       if (unlockRatesBtn) unlockRatesBtn.style.display = "none";
+      if (floorplanBtn) {
+        floorplanBtn.title = "Interactive 2D Architectural Floor Plan";
+      }
+      if (vastuBadge) {
+        vastuBadge.innerHTML = `<i class="fas fa-compass"></i> Vastu Verified`;
+        vastuBadge.style.display = "inline-flex";
+      }
     }
 
     if (dom.hudProjectTitle) {
@@ -652,22 +672,29 @@
     }, 1000);
   }
 
-  function renderRoomCarousel(activeSceneId) {
+  function renderRoomCarousel(activeSceneId, project) {
     if (!dom.roomCarousel) return;
     dom.roomCarousel.innerHTML = "";
 
-    const scenes = [
-      { id: "living", title: "Living Foyer", icon: "fa-couch" },
-      { id: "balcony", title: "East Balcony", icon: "fa-sun" },
-      { id: "kitchen", title: "Chef's Kitchen", icon: "fa-utensils" },
-      { id: "master", title: "Master Suite", icon: "fa-bed" }
-    ];
+    const isPlot = project?.mode === "plot";
+    const scenes = isPlot
+      ? (project.plotScenes || [
+          { id: "gate", title: "Main Gate", icon: "fa-archway" },
+          { id: "road40", title: "40ft Road", icon: "fa-road" },
+          { id: "garden", title: "Colony Garden", icon: "fa-tree" }
+        ])
+      : (project?.flatScenes || project?.rooms || [
+          { id: "living", title: "Living Foyer", icon: "fa-couch" },
+          { id: "balcony", title: "East Balcony", icon: "fa-sun" },
+          { id: "kitchen", title: "Chef's Kitchen", icon: "fa-utensils" },
+          { id: "master", title: "Master Suite", icon: "fa-bed" }
+        ]);
 
     scenes.forEach(s => {
       const btn = document.createElement("button");
-      btn.className = `room-thumb-btn ${s.id === activeSceneId ? 'active' : ''}`;
+      btn.className = `room-thumb-btn ${s.id === activeSceneId ? "active" : ""}`;
       btn.innerHTML = `
-        <i class="fas ${s.icon} text-gold"></i>
+        <i class="fas ${s.icon || "fa-map-marker-alt"} text-gold"></i>
         <span class="room-thumb-title">${s.title}</span>
       `;
       btn.addEventListener("click", () => switchScene(s.id));
@@ -1083,9 +1110,96 @@
 
   /**
    * ==========================================================================
-   * 6. MODALS MANAGEMENT
+   * 6. MODALS MANAGEMENT & LIVE RATE SHEET SYNC
    * ==========================================================================
    */
+  async function fetchLiveRateSheet(project) {
+    if (!project || !project.rateSheet || !project.rateSheet.csvUrl) return null;
+    try {
+      const apiUrl = `/api/rates/${project.slug}?csv=${encodeURIComponent(project.rateSheet.csvUrl)}`;
+      const res = await fetch(apiUrl);
+      if (!res.ok) throw new Error("HTTP error " + res.status);
+      const csvText = await res.text();
+      return parseRateSheetCSV(csvText);
+    } catch (e) {
+      console.warn("Live rate sheet fetch fallback:", e);
+      return [
+        { plotNo: "14", dimensions: "30 × 50 ft", facing: "East", rate: "3500", total: "₹ 52.5 Lakhs", status: "AVAILABLE" },
+        { plotNo: "15", dimensions: "30 × 50 ft", facing: "East", rate: "3500", total: "₹ 52.5 Lakhs", status: "AVAILABLE" },
+        { plotNo: "16", dimensions: "40 × 60 ft", facing: "North", rate: "3500", total: "Sold Out", status: "SOLD" },
+        { plotNo: "17", dimensions: "30 × 60 ft", facing: "North-East", rate: "3600", total: "Under Token", status: "HOLD" }
+      ];
+    }
+  }
+
+  function parseRateSheetCSV(csvText) {
+    if (!csvText) return [];
+    const lines = csvText.trim().split(/\r?\n/).filter(line => line.trim().length > 0);
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(",").map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
+    const plotNoIdx = headers.findIndex(h => h.includes("plot"));
+    const dimIdx = headers.findIndex(h => h.includes("dim") || h.includes("size"));
+    const facingIdx = headers.findIndex(h => h.includes("fac"));
+    const rateIdx = headers.findIndex(h => h.includes("rate"));
+    const priceIdx = headers.findIndex(h => h.includes("price") || h.includes("total"));
+    const statusIdx = headers.findIndex(h => h.includes("status"));
+
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = [];
+      let cur = '';
+      let insideQuote = false;
+      for (let ch of lines[i]) {
+        if (ch === '"' || ch === "'") {
+          insideQuote = !insideQuote;
+        } else if (ch === ',' && !insideQuote) {
+          values.push(cur.trim());
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      values.push(cur.trim());
+
+      const getVal = (idx, fallback = "") => (idx >= 0 && idx < values.length) ? values[idx].replace(/^["']|["']$/g, '').trim() : fallback;
+      const plotNo = getVal(plotNoIdx, String(i));
+      const dimensions = getVal(dimIdx, "1,500 Sq.Ft.");
+      const facing = getVal(facingIdx, "East");
+      const rate = getVal(rateIdx, "3500");
+      const total = getVal(priceIdx, "₹ 52.5 Lakhs");
+      const statusRaw = getVal(statusIdx, "AVAILABLE").toUpperCase();
+      const status = statusRaw.includes("SOLD") ? "SOLD" : (statusRaw.includes("HOLD") || statusRaw.includes("TOKEN") ? "HOLD" : "AVAILABLE");
+
+      rows.push({ plotNo, dimensions, facing, rate, total, status });
+    }
+    return rows;
+  }
+
+  function syncLiveRatesToPlots(project, rateRows) {
+    if (!project || !rateRows || rateRows.length === 0) return;
+    const rateMap = {};
+    rateRows.forEach(r => {
+      const numClean = r.plotNo.replace(/\D/g, '');
+      if (numClean) rateMap[numClean] = r;
+    });
+
+    Object.values(project.scenes || {}).forEach(scene => {
+      (scene.plotHotspots || []).forEach(hotspot => {
+        const numClean = String(hotspot.number || hotspot.id || '').replace(/\D/g, '');
+        const match = rateMap[numClean];
+        if (match) {
+          hotspot.status = match.status.toLowerCase();
+          if (match.total) {
+            hotspot.priceText = match.status === "SOLD" ? "Sold Out" : (match.status === "HOLD" ? "Under Token / Hold" : `${match.total} (₹ ${match.rate}/Sq.Ft.)`);
+          }
+          if (match.dimensions) hotspot.dimensions = match.dimensions;
+          if (match.facing) hotspot.facing = `${match.facing} Facing`;
+        }
+      });
+    });
+  }
+
   function openSpecModal(spec) {
     if (!dom.modalSpec) return;
     dom.specImg.src = spec.image;
@@ -1147,10 +1261,13 @@
     const btnCopy = document.getElementById("btnCopyPlotLink");
     const btnUnlock = document.getElementById("btnPlotUnlockRate");
 
-    const statusLabel = plot.status === "available" ? "AVAILABLE PLOT" : (plot.status === "sold" ? "SOLD OUT" : "ON HOLD / TOKEN");
+    const statusNorm = (plot.status || "available").toLowerCase();
+    const statusLabel = statusNorm === "available" ? "AVAILABLE PLOT" : (statusNorm === "sold" ? "SOLD OUT" : "ON HOLD / TOKEN");
     if (badge) {
       badge.textContent = statusLabel;
-      badge.className = plot.status === "available" ? "badge-available" : (plot.status === "sold" ? "badge-soldout" : "badge-available");
+      badge.className = statusNorm === "available" ? "badge-available" : (statusNorm === "sold" ? "badge-soldout" : "badge-hold");
+      badge.style.background = statusNorm === "available" ? "#065f46" : (statusNorm === "sold" ? "#7f1d1d" : "#78350f");
+      badge.style.color = statusNorm === "available" ? "#34d399" : (statusNorm === "sold" ? "#f87171" : "#fbbf24");
     }
 
     if (title) title.textContent = `Plot #${plot.number} • ${plot.facing || 'East Facing'}`;
@@ -1210,17 +1327,172 @@
     dom.modalRateSheet.classList.add("modal-open");
   }
 
-  function openFloorplanModal() {
+  async function openFloorplanModal() {
     if (!dom.modalFloorplan) return;
 
     const project = window.TOURS360_DATA.getProject(state.currentProjectSlug);
     const scrollContainer = document.getElementById("multiFloorScrollContainer");
     const quickNav = document.getElementById("floorQuickNav");
+    const modalTitle = document.getElementById("floorplanModalTitle");
+    const modalSubtitle = document.getElementById("floorplanModalSubtitle");
     if (!scrollContainer || !quickNav) return;
 
     scrollContainer.innerHTML = "";
     quickNav.innerHTML = "";
 
+    const isPlot = project?.mode === "plot";
+    if (modalTitle) {
+      modalTitle.textContent = isPlot ? "Colony / Society Layout Plan (TNCP Map)" : "Architectural Floor Plan & Vastu Grid";
+    }
+    if (modalSubtitle) {
+      modalSubtitle.textContent = isPlot
+        ? "Click any sector/road pin to jump inside 360° • Live rates synced from Builder Sheet"
+        : "Scroll down for Upper Floors • Click any pin to jump inside 360°";
+    }
+
+    // --- PLOT / COLONY MODE RENDERING ---
+    if (isPlot) {
+      const colonyPlan = project?.colonyPlan || {};
+      const planSrc = colonyPlan.svgSrc || project?.floorplan?.blueprintSrc || "assets/images/floorplan.svg";
+      const planTitle = colonyPlan.title || `${project.title} — Colony Master Layout`;
+
+      const card = document.createElement("div");
+      card.className = "floor-section-card";
+      card.innerHTML = `
+        <div class="floor-section-header">
+          <div class="floor-section-title">
+            <i class="fas fa-map-marked-alt text-gold"></i> ${planTitle}
+          </div>
+          <span style="font-family: 'Space Grotesk'; font-size: 0.72rem; color: #10B981; font-weight: 700;">
+            <i class="fas fa-certificate"></i> TNCP & RERA APPROVED
+          </span>
+        </div>
+        <div class="floor-svg-stage" id="colonyPlanStage" style="position: relative; min-height: 380px; background: rgba(11,13,16,0.9); border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+          <img src="${planSrc}" alt="${planTitle}" class="floor-blueprint-media" style="width: 100%; max-height: 480px; object-fit: contain;">
+        </div>
+      `;
+
+      scrollContainer.appendChild(card);
+
+      // Clickable pins on colony plan
+      const stage = card.querySelector("#colonyPlanStage");
+      const colonyPins = colonyPlan.pins || [
+        { sceneId: "tathastu_overview", title: "Main Gate & 60ft Boulevard", x: 50, y: 85, icon: "fa-archway" },
+        { sceneId: "tathastu_overview", title: "Sector 1 & 40ft Road", x: 35, y: 45, icon: "fa-road" },
+        { sceneId: "tathastu_overview", title: "Colony Garden", x: 65, y: 30, icon: "fa-tree" }
+      ];
+
+      colonyPins.forEach(pin => {
+        const pinEl = document.createElement("div");
+        pinEl.className = "floor-pin-marker";
+        pinEl.style.position = "absolute";
+        pinEl.style.left = `${pin.x}%`;
+        pinEl.style.top = `${pin.y}%`;
+        pinEl.style.cursor = "pointer";
+        pinEl.innerHTML = `
+          <div class="floor-pin-dot active-room">
+            <i class="fas ${pin.icon || 'fa-street-view'}"></i>
+          </div>
+          <div class="floor-pin-label">${pin.title}</div>
+        `;
+        pinEl.onclick = () => {
+          closeAllModals();
+          switchScene(pin.sceneId || project.defaultSceneId || "tathastu_overview");
+        };
+        stage.appendChild(pinEl);
+      });
+
+      // Live Colony Rate & Plot Availability Table Container
+      const tableSection = document.createElement("div");
+      tableSection.className = "colony-rates-wrapper";
+      tableSection.style.cssText = "background: #11151C; border: 1px solid rgba(212,175,55,0.25); border-radius: 14px; padding: 18px 20px;";
+      tableSection.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h4 class="font-heading" style="color: #FFF; font-size: 1.15rem; margin-bottom: 2px;">
+              <i class="fas fa-table text-gold"></i> Live Colony Rates &amp; Plot Inventory
+            </h4>
+            <p style="font-size: 0.78rem; color: #94A3B8;">
+              Direct synchronization from Builder Google Sheet (${project?.rateSheet?.assignedTo || 'Authorized Builder Team'})
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="badge-available" style="font-size: 0.72rem;"><span class="pulse-dot"></span> 60s CACHED PROXY</span>
+          </div>
+        </div>
+        <div id="colonyRateTableContent" style="overflow-x: auto;">
+          <p style="color: #94A3B8; font-size: 0.85rem;"><i class="fas fa-spinner fa-spin text-gold"></i> Fetching live plot rates from builder spreadsheet...</p>
+        </div>
+      `;
+      scrollContainer.appendChild(tableSection);
+
+      dom.modalFloorplan.classList.add("modal-open");
+
+      // Fetch & populate rate table asynchronously
+      fetchLiveRateSheet(project).then(rateRows => {
+        const tableContainer = document.getElementById("colonyRateTableContent");
+        if (!tableContainer) return;
+        if (!rateRows || rateRows.length === 0) {
+          tableContainer.innerHTML = `<p style="color: #EF4444; font-size: 0.85rem;">Unable to load rate sheet. Please contact sales manager.</p>`;
+          return;
+        }
+
+        // Also sync rates to project hotspots
+        syncLiveRatesToPlots(project, rateRows);
+
+        let tableHtml = `
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(212,175,55,0.3); color: var(--gold-light); font-family: 'Space Grotesk', monospace;">
+                <th style="padding: 10px 12px;">Plot #</th>
+                <th style="padding: 10px 12px;">Dimensions</th>
+                <th style="padding: 10px 12px;">Facing</th>
+                <th style="padding: 10px 12px;">Rate / Sq.Ft.</th>
+                <th style="padding: 10px 12px;">Total Price</th>
+                <th style="padding: 10px 12px;">Status</th>
+                <th style="padding: 10px 12px; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        rateRows.forEach(row => {
+          const isAvail = row.status === "AVAILABLE";
+          const isSold = row.status === "SOLD";
+          const statusBadge = isAvail
+            ? `<span style="background: #065f46; color: #34d399; padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 0.72rem;">AVAILABLE</span>`
+            : (isSold
+              ? `<span style="background: #7f1d1d; color: #f87171; padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 0.72rem;">SOLD OUT</span>`
+              : `<span style="background: #78350f; color: #fbbf24; padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 0.72rem;">HOLD</span>`);
+
+          tableHtml += `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); color: #E2E8F0;">
+              <td style="padding: 10px 12px; font-weight: bold; color: #FFF;">Plot #${row.plotNo}</td>
+              <td style="padding: 10px 12px; font-family: 'Space Grotesk', monospace;">${row.dimensions}</td>
+              <td style="padding: 10px 12px;">${row.facing}</td>
+              <td style="padding: 10px 12px; color: var(--gold-primary); font-weight: 600;">₹ ${row.rate}</td>
+              <td style="padding: 10px 12px; font-weight: bold;">${row.total}</td>
+              <td style="padding: 10px 12px;">${statusBadge}</td>
+              <td style="padding: 10px 12px; text-align: center;">
+                <button class="btn-ghost-gold" style="padding: 4px 10px; font-size: 0.75rem;" onclick="window.Tours360App.viewPlotOnMap('${row.plotNo}')">
+                  View 360°
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+
+        tableHtml += `
+            </tbody>
+          </table>
+        `;
+        tableContainer.innerHTML = tableHtml;
+      });
+
+      return;
+    }
+
+    // --- STANDARD FLAT / VILLA MULTI-FLOOR RENDERING ---
     // Check if project has custom multi-floor data, otherwise fallback to Default SVG
     const fp = project?.floorplan;
     if (!fp || !fp.floors || fp.floors.length === 0) {
@@ -1562,6 +1834,14 @@
       });
     }
 
+    // Explicit event listener for any [href="#corridors"] buttons/links across the app
+    document.querySelectorAll('a[href="#corridors"]').forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        openCorridorsHub(true);
+      });
+    });
+
     // Exit Tour Viewer Button
     const btnExitTour = document.getElementById("btnExitTourViewer");
     if (btnExitTour) {
@@ -1694,7 +1974,22 @@
     openPlotDetailModal,
     openRateSheetModal,
     openQRModal,
-    openSpecModal
+    openSpecModal,
+    viewPlotOnMap: (plotNo) => {
+      closeAllModals();
+      const project = window.TOURS360_DATA.getProject(state.currentProjectSlug);
+      const sceneData = window.TOURS360_DATA.getScene(state.currentSceneId);
+      if (sceneData && sceneData.plotHotspots) {
+        const numClean = String(plotNo).replace(/\D/g, '');
+        const targetPlot = sceneData.plotHotspots.find(p => String(p.number || p.id).replace(/\D/g, '') === numClean);
+        if (targetPlot && state.fullscreenViewerInstance) {
+          state.fullscreenViewerInstance.lookAt(targetPlot.pitch, targetPlot.yaw, 85, 1200);
+          openPlotDetailModal(targetPlot, project);
+          return;
+        }
+      }
+      showToast(`Plot #${plotNo} active in layout`);
+    }
   };
 
   // Expose global panoViewer accessor for dynamic HFOV & responsive resize

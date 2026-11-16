@@ -4,12 +4,14 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -25,6 +27,16 @@ type ShootInquiry struct {
 	Phone     string `json:"phone"`
 	CreatedAt string `json:"createdAt"`
 }
+
+type RateCacheEntry struct {
+	Data      []byte
+	ExpiresAt time.Time
+}
+
+var (
+	rateCache   = make(map[string]RateCacheEntry)
+	rateCacheMu sync.RWMutex
+)
 
 func main() {
 	initStatusStore()
@@ -59,6 +71,42 @@ func main() {
 			return
 		}
 		w.Write(data)
+	})
+
+	// Google Sheet Live Rate Cache Proxy (60s TTL RAM Cache)
+	mux.HandleFunc("/api/rates/", func(w http.ResponseWriter, r *http.Request) {
+		slug := strings.TrimPrefix(r.URL.Path, "/api/rates/")
+		csvUrl := r.URL.Query().Get("csv")
+		if csvUrl == "" {
+			http.Error(w, `{"error":"missing csv url"}`, http.StatusBadRequest)
+			return
+		}
+
+		rateCacheMu.RLock()
+		entry, ok := rateCache[slug]
+		rateCacheMu.RUnlock()
+
+		if ok && time.Now().Before(entry.ExpiresAt) {
+			w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+			w.Write(entry.Data)
+			return
+		}
+
+		client := &http.Client{Timeout: 6 * time.Second}
+		resp, err := client.Get(csvUrl)
+		if err != nil || resp.StatusCode != 200 {
+			http.Error(w, `{"error":"failed to fetch sheet"}`, http.StatusBadGateway)
+			return
+		}
+		defer resp.Body.Close()
+
+		body, _ := io.ReadAll(resp.Body)
+		rateCacheMu.Lock()
+		rateCache[slug] = RateCacheEntry{Data: body, ExpiresAt: time.Now().Add(60 * time.Second)}
+		rateCacheMu.Unlock()
+
+		w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+		w.Write(body)
 	})
 
 	// 0. Admin Inquiries API Route

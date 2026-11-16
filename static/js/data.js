@@ -300,6 +300,52 @@ const TOURS360_DATA = {
         "Teakwood Handcrafted Entry Doorway",
         "Infinity Edge Lotus Pond"
       ]
+    },
+    {
+      id: "p-tathastu-greens",
+      slug: "tathastu-greens",
+      builderSlug: "apollo-creations",
+      title: "Tathastu Greens — Super Corridor Plottings",
+      tagline: "Premium RERA-Approved Residential Plottings on Super Corridor",
+      category: "Plottings",
+      subCategory: "Corridor Plottings",
+      corridor: "super-corridor",
+      mode: "plot",
+      tower: "Sector 1 & 2 • Main 60ft Boulevard",
+      carpetSqFt: 1500,
+      superBuiltUpSqFt: 1500,
+      facing: "East & North Facing",
+      vastuCompliance: "100% Vastu Plotted Layout",
+      status: "AVAILABLE",
+      priceDisplay: "₹ 52.5 Lakhs Onwards",
+      pricePerSqFt: "₹ 3,500 / Sq.Ft.",
+      thumbnail: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=900&auto=format&fit=crop&q=80",
+      defaultSceneId: "tathastu_overview",
+      plotScenes: [
+        { id: "tathastu_overview", title: "Main Gate", icon: "fa-archway" },
+        { id: "road40", title: "40ft Road", icon: "fa-road" },
+        { id: "garden", title: "Colony Garden", icon: "fa-tree" }
+      ],
+      colonyPlan: {
+        svgSrc: "assets/images/floorplan.svg",
+        title: "Tathastu Greens Sector & Plot Layout (TNCP Map)",
+        pins: [
+          { sceneId: "tathastu_overview", title: "Main Entrance Gate & 60ft Boulevard", x: 50, y: 85, type: "gate" },
+          { sceneId: "tathastu_overview", title: "Sector 1 & 40ft Main Road", x: 35, y: 45, type: "road" },
+          { sceneId: "tathastu_overview", title: "Colony Landscaped Garden & Temple", x: 65, y: 30, type: "garden" }
+        ]
+      },
+      rateSheet: {
+        csvUrl: "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=0",
+        editUrl: "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit",
+        assignedTo: "Tathastu Developers (Sales Head: Rajesh Sharma)"
+      },
+      features: [
+        "40ft & 60ft Wide Cement Concrete Roads",
+        "Underground Electric Cabling & LED Streetlights",
+        "Grand Clubhouse, Temple & 2-Acre Landscaped Garden",
+        "Indore Super Corridor Metro Station Proximity (5 Mins)"
+      ]
     }
   ],
 
@@ -601,6 +647,73 @@ const TOURS360_DATA = {
           specDetails: "High acoustic coefficient NRC 0.82 dampens outside reverberation. Fire-rated luxury micro-suede fluted with champagne brass reveals.",
           image: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=600&auto=format&fit=crop&q=80",
           tag: "WALL ARCHITECTURE"
+        }
+      ]
+    },
+    tathastu_overview: {
+      id: "tathastu_overview",
+      title: "Colony Entrance & 60ft Boulevard",
+      roomCategory: "Sector 1 & Main Avenue",
+      vastuDirection: "East Sunrise Gateway • Super Corridor",
+      description: "Aerial 360° overlook of Tathastu Greens gated colony showing 60ft boulevard roads, underground utilities, and plotted land parcels.",
+      lightingModes: {
+        day: {
+          time: "08:00 AM",
+          sunText: "☀️ East Sunrise | Vastu: Surya Pravesh Gateway | Morning Sun",
+          image: "assets/panos/living_day.jpg",
+          brightness: 1.05,
+          contrast: 1.02,
+          ambientColor: "rgba(255, 245, 230, 0.04)"
+        }
+      },
+      plotHotspots: [
+        {
+          id: "plot-14",
+          pitch: -8,
+          yaw: -35,
+          status: "available",
+          number: "14",
+          dimensions: "30 × 50 ft (1,500 Sq.Ft.)",
+          facing: "East Facing (Morning Sun)",
+          colony: "Tathastu Greens • Super Corridor",
+          priceText: "₹ 52.50 Lakhs (₹ 3,500/Sq.Ft.)",
+          roadWidth: "40ft Main Road"
+        },
+        {
+          id: "plot-15",
+          pitch: -6,
+          yaw: -15,
+          status: "available",
+          number: "15",
+          dimensions: "30 × 50 ft (1,500 Sq.Ft.)",
+          facing: "East Facing (Morning Sun)",
+          colony: "Tathastu Greens • Super Corridor",
+          priceText: "₹ 52.50 Lakhs (₹ 3,500/Sq.Ft.)",
+          roadWidth: "40ft Main Road"
+        },
+        {
+          id: "plot-16",
+          pitch: -7,
+          yaw: 15,
+          status: "sold",
+          number: "16",
+          dimensions: "40 × 60 ft (2,400 Sq.Ft.)",
+          facing: "North Facing (Kuber Vastu)",
+          colony: "Tathastu Greens • Super Corridor",
+          priceText: "Sold Out",
+          roadWidth: "60ft Boulevard"
+        },
+        {
+          id: "plot-17",
+          pitch: -5,
+          yaw: 38,
+          status: "hold",
+          number: "17",
+          dimensions: "30 × 60 ft (1,800 Sq.Ft.)",
+          facing: "North-East Corner",
+          colony: "Tathastu Greens • Super Corridor",
+          priceText: "Under Token / Hold",
+          roadWidth: "60ft × 40ft Corner"
         }
       ]
     }

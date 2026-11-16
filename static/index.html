@@ -78,6 +78,7 @@
       <nav>
         <ul class="nav-menu">
           <li><a href="#tour/imperial-grand-4bhk/living" class="nav-link"><i class="fas fa-play text-gold" style="font-size: 0.75rem;"></i> Live 360° Demo</a></li>
+          <li><a href="#corridors" class="nav-link" onclick="window.Tours360App.openCorridorsHub()"><i class="fas fa-map-marker-alt text-gold" style="font-size: 0.75rem;"></i> Corridors Hub &amp; Plottings</a></li>
           <li><a href="#directorySection" class="nav-link">Builder Portals</a></li>
           <li><a href="#pillarsSection" class="nav-link">4 Pillars</a></li>
           <li><a href="#partnersSection" class="nav-link">Partners & Team</a></li>
@@ -86,6 +87,9 @@
       </nav>
 
       <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="#corridors" class="btn-ghost-gold" onclick="window.Tours360App.openCorridorsHub()" style="padding: 9px 16px; font-size: 0.85rem;">
+          <i class="fas fa-map-marked-alt"></i> Corridors Hub &amp; Plottings
+        </a>
         <a href="#b/maheshwari-group" class="btn-ghost-gold" style="padding: 9px 18px; font-size: 0.85rem;">
           <i class="fas fa-building"></i> Builder Portal
         </a>
@@ -122,6 +126,9 @@
           <div class="hero-cta-group">
             <a href="#tour/imperial-grand-4bhk/living" class="btn-gold" style="font-size: 1.05rem; padding: 14px 32px;">
               <i class="fas fa-street-view"></i> Launch Full-Screen 3BHK Demo
+            </a>
+            <a href="#corridors" class="btn-gold" onclick="window.Tours360App.openCorridorsHub()" style="font-size: 1.05rem; padding: 14px 28px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #34d399;">
+              <i class="fas fa-map-marked-alt"></i> Corridors Hub &amp; Plottings
             </a>
             <a href="#directorySection" class="btn-ghost-gold" style="font-size: 1.05rem; padding: 14px 28px;">
               <i class="fas fa-compass"></i> Explore Builder Portals
@@ -408,7 +415,8 @@
         <div>
           <h4 style="font-size: 1rem; color: #FFFFFF; margin-bottom: 16px; font-weight: 700;">Platform Surfaces</h4>
           <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--text-muted);">
-            <li><a href="#agency" style="color: inherit; text-decoration: none;">Main Agency Portal</a></li>
+            <li><a href="#corridors" onclick="window.Tours360App.openCorridorsHub()" style="color: inherit; text-decoration: none;">Corridors Hub &amp; Plottings</a></li>
+            <li><a href="#agency" onclick="window.Tours360App.openAgencyLanding()" style="color: inherit; text-decoration: none;">Main Agency Portal</a></li>
             <li><a href="#b/maheshwari-group" style="color: inherit; text-decoration: none;">Builder White-Label Sub-UIs</a></li>
             <li><a href="#tour/imperial-grand-4bhk/living" style="color: inherit; text-decoration: none;">Pannellum 360° WebXR Engine</a></li>
             <li><a href="#tour/imperial-grand-4bhk/balcony" style="color: inherit; text-decoration: none;">East Sunrise Balcony Spec View</a></li>
@@ -512,6 +520,66 @@
   </main>
 
   <!-- ========================================================================
+       VIEW: CORRIDORS HUB DISCOVERY (/corridors)
+       ======================================================================== -->
+  <main id="viewCorridors" class="view-section">
+    <div class="builder-portal-wrapper">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <a href="#agency" class="hud-back-btn" onclick="window.Tours360App.openAgencyLanding()">
+          <i class="fas fa-arrow-left"></i> Back to Tours360 Directory
+        </a>
+        <div class="glass-pill" style="font-size: 0.8rem; color: var(--gold-light);">
+          <i class="fas fa-city text-gold"></i> Indore Corridors Hub &amp; Plottings
+        </div>
+      </div>
+
+      <div class="builder-header-banner glass-panel">
+        <div>
+          <div class="hero-badge" style="margin-bottom: 12px;">
+            <i class="fas fa-map-marked-alt text-gold"></i>
+            <span>CENTRAL INDIA CORRIDOR NETWORK</span>
+          </div>
+          <h1 class="font-heading" style="font-size: 2.2rem; color: #FFFFFF; margin-bottom: 8px;">
+            Indore Corridors Hub &amp; Plottings
+          </h1>
+          <p style="font-size: 0.95rem; color: var(--text-muted); max-width: 720px;">
+            Explore approved colony layouts, high-growth industrial and IT corridor plots, luxury township villas, and sky-suites across Super Corridor, AB Bypass, and Simhastha Ujjain Road.
+          </p>
+        </div>
+      </div>
+
+      <!-- Corridor Mode & Region Filter Bar -->
+      <div class="filter-bar" style="flex-direction: column; align-items: flex-start; gap: 14px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+          <span style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-light); font-weight: 700;">Type:</span>
+          <div id="corridorTypeFilters" class="filter-chips">
+            <button class="filter-chip active" data-corridor-type="all">All</button>
+            <button class="filter-chip" data-corridor-type="plot">Corridor Plottings</button>
+            <button class="filter-chip" data-corridor-type="flat">Flats &amp; Villas</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+          <span style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-light); font-weight: 700;">Corridor:</span>
+          <div id="corridorLocationFilters" class="filter-chips">
+            <button class="filter-chip active" data-corridor-loc="all">All Corridors</button>
+            <button class="filter-chip" data-corridor-loc="super-corridor">Super Corridor</button>
+            <button class="filter-chip" data-corridor-loc="ab-bypass">AB Road Bypass</button>
+            <button class="filter-chip" data-corridor-loc="ujjain-road">Ujjain Road</button>
+            <button class="filter-chip" data-corridor-loc="rau">Rau</button>
+            <button class="filter-chip" data-corridor-loc="khandwa-road">Khandwa Road</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Corridors Project Grid -->
+      <div id="corridorsProjectsGrid" class="projects-grid">
+        <!-- Dynamically populated via app.js -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================
        VIEW 3: FULL-SCREEN 360° DIGITAL TWIN VIEWER (Pannellum JS)
        ======================================================================== -->
   <div id="viewTour" class="view-section tour-viewer-wrapper viewer-container">
@@ -582,6 +650,9 @@
 
       <!-- Quick Action Controls & Floating WhatsApp CTA -->
       <div class="hud-actions-right">
+        <button id="btnUnlockRatesBar" class="btn-unlock-rates" style="display:none;" title="Unlock Official Colony Rate Sheet">
+          <i class="fas fa-lock-open"></i> <span>Unlock Rate Sheet</span>
+        </button>
         <button id="hudFloorplanBtn" class="hud-tool-btn" title="Interactive 2D Architectural Floor Plan">
           <i class="fas fa-map"></i>
         </button>
@@ -796,8 +867,8 @@
       <div style="padding: 20px 24px 14px; border-bottom: 1px solid rgba(212, 175, 55, 0.2); background: #151921; border-radius: 20px 20px 0 0;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h3 class="font-heading" style="font-size: 1.4rem; color: #FFFFFF; margin-bottom: 2px;">Architectural Blueprints &amp; Vastu Grid</h3>
-            <p style="font-size: 0.8rem; color: var(--gold-light);">Scroll down for Upper Floors • Click any pin to jump inside 360°</p>
+            <h3 id="floorplanModalTitle" class="font-heading" style="font-size: 1.4rem; color: #FFFFFF; margin-bottom: 2px;">Architectural Blueprints &amp; Vastu Grid</h3>
+            <p id="floorplanModalSubtitle" style="font-size: 0.8rem; color: var(--gold-light);">Scroll down for Upper Floors • Click any pin to jump inside 360°</p>
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <div id="floorQuickNav" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
@@ -813,6 +884,64 @@
         <!-- Floors injected dynamically by app.js -->
       </div>
 
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: PLOT DETAIL + REFERRAL SHARE QR CODE
+       ======================================================================== -->
+  <div id="modalPlotDetail" class="modal-overlay">
+    <div class="modal-container" style="max-width: 460px; text-align: center;">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-body" style="padding: 28px;">
+        <div id="plotDetailStatusBadge" class="badge-available" style="margin-bottom: 10px;">AVAILABLE PLOT</div>
+        <h3 id="plotDetailTitle" class="font-heading" style="font-size: 1.6rem; color: #FFF; margin-bottom: 6px;">Plot #14 • East Facing</h3>
+        <p id="plotDetailMeta" style="font-family: 'Space Grotesk'; font-size: 0.92rem; color: #FCEBA7; margin-bottom: 18px;">30 × 50 ft (1,500 Sq.Ft.) • 40ft Main Road</p>
+        
+        <div style="background: rgba(11,13,16,0.7); border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; padding: 14px; margin-bottom: 18px; text-align: left; font-size: 0.85rem; color: #CBD5E1;">
+          <div><strong style="color:#D4AF37;">Colony:</strong> <span id="plotDetailColony">Tathastu Greens • Super Corridor</span></div>
+          <div style="margin-top:4px;"><strong style="color:#D4AF37;">Facing &amp; Vastu:</strong> <span id="plotDetailFacing">East Facing (Morning Sun)</span></div>
+          <div style="margin-top:4px;"><strong style="color:#D4AF37;">Rate / Price:</strong> <span id="plotDetailPrice">Unlock Rate Sheet for Offer Price</span></div>
+        </div>
+
+        <!-- Direct Plot Share QR Code for Referrals / Relatives -->
+        <div style="background:#FFF; padding:12px; border-radius:12px; display:inline-block; margin-bottom:10px;">
+          <img id="plotShareQRImg" src="" alt="Plot Referral QR" style="width:150px; height:150px; display:block;">
+        </div>
+        <p style="font-size:0.76rem; color:#94A3B8; margin-bottom:16px;">Scan or share this QR with family/referrals to open this exact plot directly.</p>
+
+        <div style="display:flex; gap:10px;">
+          <button id="btnCopyPlotLink" class="btn-ghost-gold" style="flex:1; padding:10px;"><i class="fas fa-share-alt"></i> Share Plot</button>
+          <button id="btnPlotUnlockRate" class="btn-gold" style="flex:1.2; padding:10px;"><i class="fas fa-lock-open"></i> Unlock Rate Sheet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: RATE SHEET LEAD GATE (FOR COLONIES)
+       ======================================================================== -->
+  <div id="modalRateSheet" class="modal-overlay">
+    <div class="modal-container" style="max-width: 440px;">
+      <button class="modal-close-btn">&times;</button>
+      <div class="modal-body" style="padding: 28px;">
+        <div class="hero-badge" style="margin-bottom: 10px;"><i class="fas fa-file-invoice-dollar text-gold"></i> <span>OFFICIAL RATE SHEET &amp; MAP</span></div>
+        <h3 class="font-heading" style="font-size: 1.5rem; color: #FFF; margin-bottom: 6px;">Unlock Colony Rate Sheet</h3>
+        <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 18px;">Enter your WhatsApp number to get exact per-sq.ft. pricing, payment plan, and RERA/TNCP brochure instantly.</p>
+        <form id="rateSheetForm">
+          <div class="form-group">
+            <label class="form-label">Your Name</label>
+            <input type="text" id="rateLeadName" class="form-control" placeholder="e.g. Rohit Sharma" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp Number</label>
+            <input type="tel" id="rateLeadPhone" class="form-control" placeholder="+91 98260 XXXXX" required>
+          </div>
+          <button type="submit" class="btn-gold" style="width:100%; padding:12px;">
+            <i class="fab fa-whatsapp"></i> Unlock &amp; Send on WhatsApp
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 

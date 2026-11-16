@@ -112,6 +112,12 @@
         <div class="admin-dock-badge">
           <i class="fas fa-crown"></i> Admin
         </div>
+        <button id="adminBtnKillSwitch" class="admin-dock-btn" title="Client Tour Kill-Switch (Live Control)">
+          <i class="fas fa-power-off text-gold"></i> Kill-Switch
+        </button>
+        <button id="adminBtnRateSheets" class="admin-dock-btn" title="Client Google Sheets Registry & Live Rates">
+          <i class="fas fa-table text-gold"></i> 📊 Rate Sheets
+        </button>
         <button id="adminBtnPinStudio" class="admin-dock-btn" title="Visual 2D Blueprint & 360 Hotspot Studio">
           <i class="fas fa-map-pin"></i> Pin Studio
         </button>
@@ -128,6 +134,8 @@
 
       document.body.appendChild(dock);
 
+      document.getElementById("adminBtnKillSwitch").onclick = () => this.openKillSwitchModal();
+      document.getElementById("adminBtnRateSheets").onclick = () => this.openRateSheetsModal();
       document.getElementById("adminBtnPinStudio").onclick = () => this.openPinStudioModal();
       document.getElementById("adminBtnAddProject").onclick = () => this.openAddProjectModal();
       document.getElementById("adminBtnViewLeads").onclick = () => this.openLeadsModal();
@@ -502,6 +510,127 @@
           <p style="color:#EF4444; font-size:0.9rem;">Note: Run Go server with /api/inquiries endpoint to read from inquiries.json directly.</p>
         `;
       }
+    },
+
+    async openKillSwitchModal() {
+      const ADMIN_PIN = localStorage.getItem("tours360_admin_pin") || "202699";
+      const modal = document.createElement("div");
+      modal.className = "admin-modal-overlay";
+      modal.innerHTML = `
+        <div class="admin-modal-box" style="max-width: 540px;">
+          <div class="admin-modal-header">
+            <h3 class="admin-modal-title"><i class="fas fa-power-off text-gold"></i> Client Tour Kill-Switch (Live Control)</h3>
+            <button class="admin-close-x" onclick="this.closest('.admin-modal-overlay').remove()">&times;</button>
+          </div>
+          <p style="font-size:0.82rem; color:#94A3B8; margin-bottom:14px;">
+            Toggle any builder or colony between <strong style="color:#34D399;">ACTIVE (Green)</strong> and <strong style="color:#F87171;">PAUSED (Red)</strong>. Pausing immediately expires QR codes, /p/{slug} links, and builder website widgets without redeploying.
+          </p>
+          <div id="client-toggle-list">Loading projects...</div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      async function loadClientSwitches() {
+        const res = await fetch("/api/admin/projects", {
+          headers: { "X-Admin-Pin": ADMIN_PIN }
+        });
+        const container = modal.querySelector("#client-toggle-list");
+        if (!res.ok) {
+          container.innerHTML = `<p style="color:#EF4444;">Unauthorized: Check ADMIN_PIN (202699).</p>`;
+          return;
+        }
+        const projects = await res.json();
+        container.innerHTML = "";
+
+        Object.entries(projects).forEach(([slug, isActive]) => {
+          const row = document.createElement("div");
+          row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#0B0D10; border:1px solid rgba(212,175,55,0.2); border-radius:10px; margin-bottom:8px;";
+
+          const label = document.createElement("span");
+          label.textContent = slug;
+          label.style.cssText = "color:#f3f4f6; font-weight:600; font-family:'Space Grotesk', monospace; font-size:14px;";
+
+          const btn = document.createElement("button");
+          btn.textContent = isActive ? "● ACTIVE (ON)" : "● PAUSED (OFF)";
+          btn.style.cssText = isActive
+            ? "background:#065f46; color:#34d399; border:1px solid #10b981; padding:6px 14px; border-radius:20px; font-weight:bold; cursor:pointer;"
+            : "background:#7f1d1d; color:#f87171; border:1px solid #ef4444; padding:6px 14px; border-radius:20px; font-weight:bold; cursor:pointer;";
+
+          btn.onclick = async () => {
+            await fetch("/api/admin/toggle", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Pin": ADMIN_PIN
+              },
+              body: JSON.stringify({ slug: slug, active: !isActive })
+            });
+            loadClientSwitches();
+          };
+
+          row.appendChild(label);
+          row.appendChild(btn);
+          container.appendChild(row);
+        });
+      }
+
+      loadClientSwitches();
+    },
+
+    openRateSheetsModal() {
+      const modal = document.createElement("div");
+      modal.className = "admin-modal-overlay";
+      modal.innerHTML = `
+        <div class="admin-modal-box" style="max-width: 680px;">
+          <div class="admin-modal-header">
+            <h3 class="admin-modal-title"><i class="fas fa-table text-gold"></i> Client Rate Sheet Registry</h3>
+            <button class="admin-close-x" onclick="this.closest('.admin-modal-overlay').remove()">&times;</button>
+          </div>
+          <p style="font-size:0.82rem; color:#94A3B8; margin-bottom:16px;">
+            Overview of linked Google Sheets per developer colony. Sales teams update pricing, dimensions, and availability status (AVAILABLE / HOLD / SOLD) directly in Google Sheets without modifying code.
+          </p>
+          <div id="adminSheetRegistryList" style="display:flex; flex-direction:column; gap:10px;">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const listContainer = modal.querySelector("#adminSheetRegistryList");
+      const projects = window.TOURS360_DATA?.projects || [];
+
+      projects.forEach(p => {
+        const rs = p.rateSheet || {
+          assignedTo: `${p.title} (General Sales Team)`,
+          editUrl: "https://docs.google.com/spreadsheets/",
+          csvUrl: ""
+        };
+
+        const item = document.createElement("div");
+        item.style.cssText = "background:#0B0D10; border:1px solid rgba(212,175,55,0.25); border-radius:10px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;";
+        item.innerHTML = `
+          <div>
+            <div style="font-weight:700; color:#FFF; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+              <span>${p.title}</span>
+              <span style="font-size:0.7rem; background:rgba(212,175,55,0.15); color:var(--gold-primary); padding:2px 8px; border-radius:10px; font-family:'Space Grotesk', monospace;">
+                ${p.mode === 'plot' ? 'Colony Plottings' : 'Apartment / Villa'}
+              </span>
+            </div>
+            <div style="font-size:0.78rem; color:#94A3B8; margin-top:3px;">
+              <i class="fas fa-user-tie text-gold"></i> Assigned To: <strong style="color:#E2E8F0;">${rs.assignedTo}</strong>
+            </div>
+            <div style="font-size:0.74rem; color:#64748B; margin-top:2px; font-family:'Space Grotesk', monospace;">
+              Slug: /p/${p.slug}
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <a href="${rs.editUrl || '#'}" target="_blank" class="btn-gold" style="padding:6px 14px; font-size:0.78rem; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              Open Google Sheet <i class="fas fa-external-link-alt"></i>
+            </a>
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
     },
 
     showToast(msg) {
