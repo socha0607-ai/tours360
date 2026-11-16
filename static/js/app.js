@@ -26,11 +26,63 @@
     previousView: "agency"
   };
 
+  // ==========================================================================
+  // INSTANT 0ms 360° IMAGE BLOB CACHE & BACKGROUND PRELOADER
+  // ==========================================================================
+  const PanoCache = {
+    blobMap: new Map(),     // imageUrl -> blob:http://... (Instant local memory)
+    pendingMap: new Map(),  // imageUrl -> Promise<string>
+
+    async get(url) {
+      if (!url) return url;
+      if (this.blobMap.has(url)) {
+        return this.blobMap.get(url);
+      }
+      if (this.pendingMap.has(url)) {
+        return this.pendingMap.get(url);
+      }
+
+      const fetchPromise = fetch(url, { cache: "force-cache" })
+        .then(resp => {
+          if (!resp.ok) throw new Error("Fetch failed");
+          return resp.blob();
+        })
+        .then(blob => {
+          const objectUrl = URL.createObjectURL(blob);
+          this.blobMap.set(url, objectUrl);
+          this.pendingMap.delete(url);
+          return objectUrl;
+        })
+        .catch(() => {
+          this.pendingMap.delete(url);
+          return url; // Fallback to original URL
+        });
+
+      this.pendingMap.set(url, fetchPromise);
+      return fetchPromise;
+    },
+
+    // Preload all rooms of the project quietly in the background
+    preloadProjectScenes(currentMode = "day") {
+      const scenes = window.TOURS360_DATA?.scenes || {};
+      Object.values(scenes).forEach((scene, index) => {
+        const modeObj = scene.lightingModes?.[currentMode] || scene.lightingModes?.day;
+        if (modeObj?.image) {
+          // Stagger background preloads slightly so current room gets 100% bandwidth first
+          setTimeout(() => {
+            this.get(modeObj.image);
+          }, (index + 1) * 350);
+        }
+      });
+    }
+  };
+
   // Cache DOM references
   const dom = {
     // Views
     viewAgency: document.getElementById("viewAgency"),
     viewBuilder: document.getElementById("viewBuilder"),
+    viewCorridors: document.getElementById("viewCorridors"),
     viewTour: document.getElementById("viewTour"),
 
     // Navigation links
@@ -70,6 +122,8 @@
     modalBooking: document.getElementById("modalBooking"),
     modalAddPartner: document.getElementById("modalAddPartner"),
     modalFloorplan: document.getElementById("modalFloorplan"),
+    modalPlotDetail: document.getElementById("modalPlotDetail"),
+    modalRateSheet: document.getElementById("modalRateSheet"),
 
     // QR Modal Fields
     qrImage: document.getElementById("qrDisplayImage"),
@@ -98,9 +152,22 @@
     const path = window.location.pathname;
     const hash = window.location.hash || "";
 
-    // Support server-side / dynamic path routes (e.g. /b/maheshwari-group, /view/imperial-grand-4bhk)
-    if (path.startsWith("/b/")) {
-      const builderSlug = path.replace("/b/", "").split("/")[0].trim();
+    // Support server-side / dynamic path routes (e.g. /b/maheshwari-group, /builder/token, /view/imperial-grand-4bhk, /p/tathastu-greens, /corridors)
+    if (path === "/corridors" || path === "/corridors/") {
+      openCorridorsHub(false);
+      return;
+    }
+
+    if (path.startsWith("/p/")) {
+      const projectSlug = path.replace("/p/", "").split("/")[0].trim();
+      if (projectSlug) {
+        openTourViewer(projectSlug, "tathastu_overview", false);
+        return;
+      }
+    }
+
+    if (path.startsWith("/b/") || path.startsWith("/builder/")) {
+      const builderSlug = path.replace(/^\/(b|builder)\//, "").split("/")[0].trim();
       if (builderSlug) {
         openBuilderPortal(builderSlug, false);
         return;
@@ -117,13 +184,15 @@
     }
 
     // Support client-side hash routes
-    if (hash.startsWith("#b/")) {
+    if (hash === "#corridors") {
+      openCorridorsHub(false);
+    } else if (hash.startsWith("#b/")) {
       // Builder sub-UI: e.g. #b/maheshwari-group
       const builderSlug = hash.replace("#b/", "").trim();
       openBuilderPortal(builderSlug, false);
-    } else if (hash.startsWith("#tour/") || hash.startsWith("#view/")) {
-      // Fullscreen 360 viewer: e.g. #tour/imperial-grand-4bhk or #tour/imperial-grand-4bhk/balcony
-      const parts = hash.replace(/^#(tour|view)\//, "").split("/");
+    } else if (hash.startsWith("#tour/") || hash.startsWith("#view/") || hash.startsWith("#p/")) {
+      // Fullscreen 360 viewer: e.g. #tour/imperial-grand-4bhk or #p/tathastu-greens
+      const parts = hash.replace(/^#(tour|view|p)\//, "").split("/");
       const projectSlug = parts[0];
       const sceneId = parts[1] || "living";
       openTourViewer(projectSlug, sceneId, false);
@@ -139,9 +208,10 @@
       window.location.hash = "#agency";
     }
 
-    dom.viewAgency.classList.add("view-active");
-    dom.viewBuilder.classList.remove("view-active");
-    dom.viewTour.classList.remove("view-active");
+    if (dom.viewAgency) dom.viewAgency.classList.add("view-active");
+    if (dom.viewBuilder) dom.viewBuilder.classList.remove("view-active");
+    if (dom.viewCorridors) dom.viewCorridors.classList.remove("view-active");
+    if (dom.viewTour) dom.viewTour.classList.remove("view-active");
 
     window.scrollTo({ top: 0, behavior: "smooth" });
     initHeroPannellum();
@@ -158,6 +228,21 @@
     renderPartners(state.activePartnerTab);
   }
 
+  function openCorridorsHub(updateHash = true) {
+    state.currentView = "corridors";
+    if (updateHash) {
+      window.location.hash = "#corridors";
+    }
+
+    if (dom.viewAgency) dom.viewAgency.classList.remove("view-active");
+    if (dom.viewBuilder) dom.viewBuilder.classList.remove("view-active");
+    if (dom.viewCorridors) dom.viewCorridors.classList.add("view-active");
+    if (dom.viewTour) dom.viewTour.classList.remove("view-active");
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    renderCorridorsProjects();
+  }
+
   function openBuilderPortal(builderSlug, updateHash = true) {
     const builder = window.TOURS360_DATA.getBuilder(builderSlug) || window.TOURS360_DATA.builders[0];
     state.currentView = "builder";
@@ -167,9 +252,10 @@
       window.location.hash = `#b/${builder.slug}`;
     }
 
-    dom.viewAgency.classList.remove("view-active");
-    dom.viewBuilder.classList.add("view-active");
-    dom.viewTour.classList.remove("view-active");
+    if (dom.viewAgency) dom.viewAgency.classList.remove("view-active");
+    if (dom.viewBuilder) dom.viewBuilder.classList.add("view-active");
+    if (dom.viewCorridors) dom.viewCorridors.classList.remove("view-active");
+    if (dom.viewTour) dom.viewTour.classList.remove("view-active");
 
     window.scrollTo({ top: 0, behavior: "smooth" });
     renderBuilderPortalHeader(builder);
@@ -191,9 +277,10 @@
       window.location.hash = `#tour/${project.slug}/${sceneId}`;
     }
 
-    dom.viewAgency.classList.remove("view-active");
-    dom.viewBuilder.classList.remove("view-active");
-    dom.viewTour.classList.add("view-active");
+    if (dom.viewAgency) dom.viewAgency.classList.remove("view-active");
+    if (dom.viewBuilder) dom.viewBuilder.classList.remove("view-active");
+    if (dom.viewCorridors) dom.viewCorridors.classList.remove("view-active");
+    if (dom.viewTour) dom.viewTour.classList.add("view-active");
 
     initFullscreenPannellum(project, sceneId);
     startVastuClock();
@@ -296,22 +383,41 @@
     }
   }
 
-  function initFullscreenPannellum(project, sceneId) {
-    if (!window.pannellum) {
-      showToast("Pannellum 360 engine loading...");
-      return;
+  function buildPannellumHotspots(sceneData, project) {
+    const hotspots = [];
+
+    // 0. Neon Plot Boundaries Hotspots (Corridor Plottings Mode)
+    if (sceneData.plotHotspots && sceneData.plotHotspots.length > 0) {
+      sceneData.plotHotspots.forEach(plot => {
+        hotspots.push({
+          pitch: plot.pitch,
+          yaw: plot.yaw,
+          type: "custom",
+          createTooltipFunc: function (hotSpotDiv) {
+            hotSpotDiv.classList.add("pnlm-neon-plot");
+            const statusClass = plot.status === "available"
+              ? "neon-plot-available"
+              : (plot.status === "sold" ? "neon-plot-sold" : "neon-plot-hold");
+            const statusLabel = plot.status === "available" ? "AVAILABLE" : (plot.status === "sold" ? "SOLD" : "HOLD");
+
+            hotSpotDiv.innerHTML = `
+              <div class="neon-plot-box ${statusClass}">
+                <div>PLOT #${plot.number} • ${statusLabel}</div>
+                <div class="plot-sub-size">${plot.dimensions || ''}</div>
+              </div>
+            `;
+            hotSpotDiv.addEventListener("click", function (e) {
+              e.stopPropagation();
+              openPlotDetailModal(plot, project);
+            });
+          }
+        });
+      });
     }
 
-    const sceneData = window.TOURS360_DATA.getScene(sceneId);
-    const modeData = sceneData.lightingModes[state.currentLightingMode];
-
-    // Build Hotspots array for Pannellum
-    const pannellumHotspots = [];
-
-    // 1. Navigation Hotspots
     if (sceneData.navHotspots) {
       sceneData.navHotspots.forEach(nav => {
-        pannellumHotspots.push({
+        hotspots.push({
           pitch: nav.pitch,
           yaw: nav.yaw,
           type: "custom",
@@ -331,10 +437,9 @@
       });
     }
 
-    // 2. Material Spec Hotspots
     if (sceneData.specHotspots) {
       sceneData.specHotspots.forEach(spec => {
-        pannellumHotspots.push({
+        hotspots.push({
           pitch: spec.pitch,
           yaw: spec.yaw,
           type: "custom",
@@ -354,26 +459,73 @@
       });
     }
 
-    // Clean previous instance if existing
+    return hotspots;
+  }
+
+  async function initFullscreenPannellum(project, sceneId) {
+    if (!window.pannellum) {
+      showToast("Pannellum 360 engine loading...");
+      return;
+    }
+
+    const sceneData = window.TOURS360_DATA.getScene(sceneId);
+    const modeData = sceneData.lightingModes[state.currentLightingMode] || sceneData.lightingModes.day;
+    const sceneKey = `${sceneId}_${state.currentLightingMode}`;
+
+    // Resolve cached Blob URL (0ms if already visited or preloaded)
+    const cachedImageUrl = await PanoCache.get(modeData.image);
+    const initialHfov = typeof getOptimalHfov === "function" ? getOptimalHfov() : 100;
+
+    // Build scene config object for Pannellum
+    const sceneConfig = {
+      type: "equirectangular",
+      panorama: cachedImageUrl,
+      autoLoad: true,
+      autoRotate: -0.6,
+      compass: true,
+      yaw: 0,
+      pitch: -2,
+      hfov: initialHfov,
+      minHfov: 50,
+      maxHfov: 120,
+      hotSpots: buildPannellumHotspots(sceneData, project)
+    };
+
+    // If viewer already exists, register scene in Pannellum & switch without destroying WebGL
+    if (state.fullscreenViewerInstance) {
+      try {
+        // Preserve user's viewing angle when only lighting mode changes
+        const prevPitch = state.fullscreenViewerInstance.getPitch();
+        const prevYaw = state.fullscreenViewerInstance.getYaw();
+        const prevHfov = state.fullscreenViewerInstance.getHfov();
+
+        state.fullscreenViewerInstance.addScene(sceneKey, sceneConfig);
+        state.fullscreenViewerInstance.loadScene(sceneKey, prevPitch, prevYaw, prevHfov);
+
+        updateHUD(project, sceneData, modeData);
+        renderRoomCarousel(sceneId);
+        return;
+      } catch (err) {
+        console.warn("Seamless scene switch fallback, re-initializing:", err);
+      }
+    }
+
+    // First-time viewer initialization
     const container = document.getElementById("fullscreenPannellumContainer");
     container.innerHTML = "";
 
     try {
-      const initialHfov = typeof getOptimalHfov === "function" ? getOptimalHfov() : 100;
       state.fullscreenViewerInstance = window.pannellum.viewer("fullscreenPannellumContainer", {
-        type: "equirectangular",
-        panorama: modeData.image,
-        autoLoad: true,
-        autoRotate: -0.6,
-        compass: true,
-        showZoomCtrl: true,
-        showFullscreenCtrl: true,
-        yaw: 0,
-        pitch: -2,
-        hfov: initialHfov,
-        minHfov: 50,
-        maxHfov: 120,
-        hotSpots: pannellumHotspots
+        default: {
+          firstScene: sceneKey,
+          sceneFadeDuration: 350, // Smooth 350ms cross-fade
+          autoLoad: true,
+          showZoomCtrl: true,
+          showFullscreenCtrl: true
+        },
+        scenes: {
+          [sceneKey]: sceneConfig
+        }
       });
       window.panoViewer = state.fullscreenViewerInstance;
 
@@ -386,12 +538,30 @@
           showToast(`Hotspot Coords: pitch: ${pitch}, yaw: ${yaw} (copied to console)`);
         }
       });
+
+      // Quietly preload all other rooms in background for instant future clicks
+      PanoCache.preloadProjectScenes(state.currentLightingMode);
     } catch (e) {
       console.error("Fullscreen Pannellum error:", e);
     }
 
     updateHUD(project, sceneData, modeData);
     renderRoomCarousel(sceneId);
+
+    // Auto-focus plot if ?plot= is in the URL on load
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetPlotId = urlParams.get("plot");
+    if (targetPlotId && sceneData.plotHotspots) {
+      const targetPlot = sceneData.plotHotspots.find(p => p.id === targetPlotId);
+      if (targetPlot && state.fullscreenViewerInstance) {
+        setTimeout(() => {
+          try {
+            state.fullscreenViewerInstance.lookAt(targetPlot.pitch, targetPlot.yaw, 85, 1200);
+            openPlotDetailModal(targetPlot, project);
+          } catch (e) {}
+        }, 600);
+      }
+    }
   }
 
   function switchScene(sceneId) {
@@ -422,10 +592,9 @@
     const modeData = sceneData.lightingModes[mode];
 
     if (state.fullscreenViewerInstance && modeData) {
-      // Re-load image smoothly
-      state.fullscreenViewerInstance.loadScene = undefined; // reset
       try {
         initFullscreenPannellum(project, state.currentSceneId);
+        PanoCache.preloadProjectScenes(mode);
       } catch (err) {
         console.warn("Mode switch reload:", err);
       }
@@ -437,6 +606,21 @@
   }
 
   function updateHUD(project, sceneData, modeData) {
+    // Mode-specific HUD behavior: Flat vs Plot
+    const lightingPill = document.querySelector(".lighting-pill");
+    const unlockRatesBtn = document.getElementById("btnUnlockRatesBar");
+
+    if (project.mode === "plot") {
+      if (lightingPill) lightingPill.style.display = "none";
+      if (unlockRatesBtn) {
+        unlockRatesBtn.style.display = "inline-flex";
+        unlockRatesBtn.onclick = () => openRateSheetModal(project);
+      }
+    } else {
+      if (lightingPill) lightingPill.style.display = "flex";
+      if (unlockRatesBtn) unlockRatesBtn.style.display = "none";
+    }
+
     if (dom.hudProjectTitle) {
       dom.hudProjectTitle.textContent = project.title;
     }
@@ -642,6 +826,123 @@
 
   /**
    * ==========================================================================
+   * 4B. CORRIDORS HUB INVENTORY & FILTER ENGINE (/corridors)
+   * ==========================================================================
+   */
+  let currentCorridorType = "all";
+  let currentCorridorLoc = "all";
+
+  function renderCorridorsProjects() {
+    const grid = document.getElementById("corridorsProjectsGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+
+    const allProjects = window.TOURS360_DATA.projects || [];
+    const filtered = allProjects.filter(p => {
+      // Type Filter: all | plot | flat
+      if (currentCorridorType === "plot" && p.mode !== "plot") return false;
+      if (currentCorridorType === "flat" && p.mode === "plot") return false;
+
+      // Location Filter
+      if (currentCorridorLoc !== "all") {
+        if (currentCorridorLoc === "super-corridor") {
+          const match = (p.corridor === "super-corridor") || (p.tower && p.tower.toLowerCase().includes("super corridor")) || (p.title && p.title.toLowerCase().includes("super corridor")) || (p.builderSlug === "apollo-creations");
+          if (!match) return false;
+        } else if (currentCorridorLoc === "ab-bypass") {
+          const match = (p.builderSlug === "treasure-group" || p.builderSlug === "shreem-infra" || (p.tagline && p.tagline.toLowerCase().includes("bypass")));
+          if (!match) return false;
+        } else if (currentCorridorLoc === "ujjain-road") {
+          const match = (p.tagline && p.tagline.toLowerCase().includes("ujjain")) || (p.title && p.title.toLowerCase().includes("ujjain"));
+          if (!match) return false;
+        } else if (currentCorridorLoc === "rau") {
+          const match = (p.title && p.title.toLowerCase().includes("rau")) || (p.tagline && p.tagline.toLowerCase().includes("rau"));
+          if (!match) return false;
+        } else if (currentCorridorLoc === "khandwa-road") {
+          const match = (p.title && p.title.toLowerCase().includes("khandwa")) || (p.tagline && p.tagline.toLowerCase().includes("khandwa"));
+          if (!match) return false;
+        }
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+          <i class="fas fa-map-marked-alt text-muted" style="font-size: 3rem; margin-bottom: 16px; display: block;"></i>
+          <h3 class="font-heading" style="font-size: 1.5rem; margin-bottom: 8px;">No projects found for this filter</h3>
+          <p class="text-muted">Select 'All Corridors' or switch between Corridor Plottings and Flats &amp; Villas.</p>
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach(project => {
+      const card = document.createElement("div");
+      card.className = "project-card glass-panel";
+
+      const isPlot = project.mode === "plot";
+      const statusBadge = isPlot
+        ? `<span class="badge-available" style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #ECFDF5;"><span class="pulse-dot"></span> NEON PLOTS READY</span>`
+        : `<span class="badge-available"><span class="pulse-dot"></span> ${project.status || 'AVAILABLE'}</span>`;
+
+      card.innerHTML = `
+        <div class="project-img-wrapper">
+          <img src="${project.thumbnail}" alt="${project.title}" class="project-img" loading="lazy">
+          <div class="project-img-overlay">
+            ${statusBadge}
+          </div>
+        </div>
+        <div class="project-body">
+          <div>
+            <span class="badge-available" style="margin-bottom: 8px; background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.3); color: #D4AF37;">
+              ${project.category} • ${project.tower || 'Prime Corridor'}
+            </span>
+            <h3 class="project-title">${project.title}</h3>
+            <p class="project-tagline">${project.tagline}</p>
+
+            <div class="project-specs-grid">
+              <div class="spec-cell">
+                <span class="spec-title">${isPlot ? 'Plot Area' : 'Carpet Area'}</span>
+                <span class="spec-data">${project.carpetSqFt.toLocaleString()} Sq.Ft.</span>
+              </div>
+              <div class="spec-cell">
+                <span class="spec-title">Vastu & Facing</span>
+                <span class="spec-data" style="font-size: 0.8rem;">${(project.facing || 'East Facing').split('(')[0]}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="project-card-footer">
+            <div class="project-price-box">
+              <span class="price-main">${project.priceDisplay}</span>
+              <span class="price-rate">${project.pricePerSqFt}</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-ghost-gold btn-qr-trigger" style="padding: 10px 14px;" data-project-slug="${project.slug}">
+                <i class="fas fa-qrcode"></i>
+              </button>
+              <button class="btn-gold btn-tour-trigger" style="padding: 10px 18px;" data-project-slug="${project.slug}">
+                <i class="fas fa-vr-cardboard"></i> Walk 360°
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      card.querySelector(".btn-tour-trigger").addEventListener("click", () => {
+        openTourViewer(project.slug, project.defaultSceneId || "living");
+      });
+
+      card.querySelector(".btn-qr-trigger").addEventListener("click", () => {
+        openQRModal(project);
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  /**
+   * ==========================================================================
    * 5. VIEW 1: AGENCY DIRECTORY & PARTNERS SECTION
    * ==========================================================================
    */
@@ -834,6 +1135,81 @@
     dom.modalAddPartner.classList.add("modal-open");
   }
 
+  function openPlotDetailModal(plot, project) {
+    if (!dom.modalPlotDetail) return;
+    const badge = document.getElementById("plotDetailStatusBadge");
+    const title = document.getElementById("plotDetailTitle");
+    const meta = document.getElementById("plotDetailMeta");
+    const colony = document.getElementById("plotDetailColony");
+    const facing = document.getElementById("plotDetailFacing");
+    const price = document.getElementById("plotDetailPrice");
+    const qrImg = document.getElementById("plotShareQRImg");
+    const btnCopy = document.getElementById("btnCopyPlotLink");
+    const btnUnlock = document.getElementById("btnPlotUnlockRate");
+
+    const statusLabel = plot.status === "available" ? "AVAILABLE PLOT" : (plot.status === "sold" ? "SOLD OUT" : "ON HOLD / TOKEN");
+    if (badge) {
+      badge.textContent = statusLabel;
+      badge.className = plot.status === "available" ? "badge-available" : (plot.status === "sold" ? "badge-soldout" : "badge-available");
+    }
+
+    if (title) title.textContent = `Plot #${plot.number} • ${plot.facing || 'East Facing'}`;
+    if (meta) meta.textContent = `${plot.dimensions || '1,500 Sq.Ft.'} • ${plot.roadWidth || '40ft Main Road'}`;
+    if (colony) colony.textContent = plot.colony || (project ? project.title : "Super Corridor");
+    if (facing) facing.textContent = plot.facing || "East Facing";
+    if (price) price.textContent = plot.priceText || "Unlock Rate Sheet for Offer Price";
+
+    const plotShareUrl = `${window.location.origin}/p/${project ? project.slug : 'tathastu-greens'}?plot=${plot.id}`;
+    if (qrImg) {
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(plotShareUrl)}&margin=8`;
+    }
+
+    if (btnCopy) {
+      btnCopy.onclick = () => {
+        navigator.clipboard.writeText(plotShareUrl).then(() => {
+          showToast(`Direct referral link for Plot #${plot.number} copied!`);
+        }).catch(() => {
+          showToast(`Plot link: ${plotShareUrl}`);
+        });
+      };
+    }
+
+    if (btnUnlock) {
+      btnUnlock.onclick = () => {
+        dom.modalPlotDetail.classList.remove("modal-open");
+        openRateSheetModal(project, plot);
+      };
+    }
+
+    dom.modalPlotDetail.classList.add("modal-open");
+  }
+
+  function openRateSheetModal(project, plot = null) {
+    if (!dom.modalRateSheet) return;
+    const form = document.getElementById("rateSheetForm");
+    if (form) {
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        const name = document.getElementById("rateLeadName").value;
+        const phone = document.getElementById("rateLeadPhone").value;
+        const projName = project ? project.title : "Tathastu Greens";
+        const plotInfo = plot ? ` (Plot #${plot.number})` : "";
+
+        closeAllModals();
+        showToast("Sending Official Rate Sheet on WhatsApp...");
+
+        const waMsg = encodeURIComponent(
+          `Hello Tours360! I have unlocked the Official Rate Sheet for ${projName}${plotInfo}.\n\n` +
+          `• Name: ${name}\n` +
+          `• WhatsApp: ${phone}\n\n` +
+          `Please share the per-sq.ft. offer sheet, master layout map & TNCP approval brochure.`
+        );
+        window.open(`https://wa.me/918261098681?text=${waMsg}`, "_blank");
+      };
+    }
+    dom.modalRateSheet.classList.add("modal-open");
+  }
+
   function openFloorplanModal() {
     if (!dom.modalFloorplan) return;
 
@@ -1011,6 +1387,25 @@
         chip.classList.add("active");
         state.activeProjectFilter = chip.dataset.filter;
         renderBuilderProjects(state.currentBuilderSlug, state.activeProjectFilter);
+      });
+    });
+
+    // Corridor Filter Chips (/corridors Hub)
+    document.querySelectorAll("#corridorTypeFilters .filter-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll("#corridorTypeFilters .filter-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentCorridorType = chip.dataset.corridorType;
+        renderCorridorsProjects();
+      });
+    });
+
+    document.querySelectorAll("#corridorLocationFilters .filter-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll("#corridorLocationFilters .filter-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentCorridorLoc = chip.dataset.corridorLoc;
+        renderCorridorsProjects();
       });
     });
 
@@ -1295,6 +1690,9 @@
     openTourViewer,
     openBuilderPortal,
     openAgencyLanding,
+    openCorridorsHub,
+    openPlotDetailModal,
+    openRateSheetModal,
     openQRModal,
     openSpecModal
   };

@@ -27,6 +27,8 @@ type ShootInquiry struct {
 }
 
 func main() {
+	initStatusStore()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -39,6 +41,25 @@ func main() {
 	fileServer := http.FileServer(http.FS(staticFS))
 
 	mux := http.NewServeMux()
+
+	// Kill-switch status and dynamic config endpoints
+	mux.HandleFunc("/api/status", handlePublicStatus)
+	mux.HandleFunc("/api/admin/projects", handleAdminList)
+	mux.HandleFunc("/api/admin/toggle", handleAdminToggle)
+
+	// Serve lightweight external project JSONs from configs/{slug}.json (zero binary bloat)
+	mux.HandleFunc("/api/configs/", func(w http.ResponseWriter, r *http.Request) {
+		slug := strings.TrimPrefix(r.URL.Path, "/api/configs/")
+		slug = strings.TrimSuffix(slug, ".json")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Cache-Control", "public, max-age=60")
+		data, err := os.ReadFile("configs/" + slug + ".json")
+		if err != nil {
+			http.Error(w, `{"error":"config not found"}`, http.StatusNotFound)
+			return
+		}
+		w.Write(data)
+	})
 
 	// 0. Admin Inquiries API Route
 	mux.HandleFunc("/api/inquiries", func(w http.ResponseWriter, r *http.Request) {
@@ -137,12 +158,33 @@ func main() {
 
 		// अगर कोई स्टैटिक फाइल (.css, .js, .webp, .json) मांगी गई है
 		if strings.Contains(path, ".") {
-			w.Header().Set("Cache-Control", "public, max-age=86400")
+			if strings.HasPrefix(path, "/assets/") {
+				w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			} else {
+				w.Header().Set("Cache-Control", "public, max-age=86400")
+			}
 			fileServer.ServeHTTP(w, r)
 			return
 		}
 
-		// सभी डायनामिक राउट्स (/b/* और /view/*) के लिए मुख्य SPA index.html सर्व करें
+		// Kill-Switch enforcement on /p/{slug} and /view/{slug}
+		if strings.HasPrefix(path, "/p/") || strings.HasPrefix(path, "/view/") {
+			trimmed := strings.TrimPrefix(path, "/p/")
+			trimmed = strings.TrimPrefix(trimmed, "/view/")
+			slug := strings.Split(trimmed, "/")[0]
+			if slug != "" && !isProjectActive(slug) {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				w.Write([]byte(`
+					<div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0f172a;color:#fff;font-family:sans-serif;text-align:center;padding:20px;">
+						<h2 style="color:#ff3b30;">360° Virtual Tour Temporarily Paused</h2>
+						<p style="color:#94a3b8;max-width:400px;">This property walkthrough is currently offline for maintenance or subscription renewal.</p>
+					</div>
+				`))
+				return
+			}
+		}
+
+		// सभी डायनामिक राउट्स (/b/*, /builder/*, /view/*, /p/*, /corridors) के लिए मुख्य SPA index.html सर्व करें
 		indexData, err := embeddedFiles.ReadFile("static/index.html")
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)

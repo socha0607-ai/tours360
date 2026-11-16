@@ -2117,3 +2117,74 @@ body {
   pointer-events: none;
   z-index: 8;
 }
+
+
+/* ==========================================================================
+   CORRIDOR PLOTTINGS 360 — NEON PLOT BOUNDARIES & RATE SHEET GATE
+   ========================================================================== */
+.pnlm-neon-plot {
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.neon-plot-box {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', monospace, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease;
+  white-space: nowrap;
+}
+
+.neon-plot-box:hover {
+  transform: scale(1.12);
+}
+
+.neon-plot-available {
+  background: rgba(16, 185, 129, 0.22);
+  border: 2px solid #10B981;
+  color: #ECFDF5;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.85), inset 0 0 10px rgba(16, 185, 129, 0.35);
+}
+
+.neon-plot-sold {
+  background: rgba(239, 68, 68, 0.22);
+  border: 2px solid #EF4444;
+  color: #FEF2F2;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.8), inset 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.neon-plot-hold {
+  background: rgba(245, 158, 11, 0.22);
+  border: 2px solid #F59E0B;
+  color: #FFFBEB;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.8);
+}
+
+.plot-sub-size {
+  font-size: 0.66rem;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.btn-unlock-rates {
+  background: linear-gradient(135deg, #FFF2B2 0%, #D4AF37 100%);
+  color: #0B0D10;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 0.88rem;
+  padding: 11px 20px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.45);
+}
