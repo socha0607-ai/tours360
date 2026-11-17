@@ -162,6 +162,7 @@
           <div class="studio-tabs">
             <button id="tab2DBlueprint" class="studio-tab-btn active">🗺️ 2D Blueprint Pin Mapper</button>
             <button id="tab360Hotspot" class="studio-tab-btn">🌐 360° Pan / Tilt Hotspot</button>
+            <button id="tabNeonPlotPlacer" class="studio-tab-btn">📐 Neon Plot Placer</button>
           </div>
 
           <!-- TAB 1: 2D BLUEPRINT CLICK MAPPER -->
@@ -225,6 +226,89 @@
               <i class="fas fa-copy"></i> Copy Hotspot JSON to Clipboard
             </button>
           </div>
+
+          <!-- TAB 3: 📐 NEON PLOT PLACER & RESIZER -->
+          <div id="panelNeonPlotPlacer" style="display:none;">
+            <p style="font-size:0.84rem; color:#CBD5E1; margin-bottom:12px;">
+              Interactive Colony Plot Boundary Placement. Click on the 360° ground to place a live preview neon box, then fine-tune width, height, and angle.
+            </p>
+
+            <div style="display:flex; gap:10px; margin-bottom:14px;">
+              <button id="btnArmPlotClicker" class="btn-gold" style="flex:1; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fas fa-crosshairs"></i> <span id="btnArmPlotClickerText">🎯 Click 360° Plot on Screen</span>
+              </button>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+              <div>
+                <label style="font-size:0.75rem; color:#94A3B8;">Captured Pitch</label>
+                <input type="text" id="plotPitch" class="form-control" value="-18.4">
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:#94A3B8;">Captured Yaw</label>
+                <input type="text" id="plotYaw" class="form-control" value="42.1">
+              </div>
+            </div>
+
+            <!-- LIVE SLIDERS -->
+            <div style="margin-top:12px; background:rgba(11,13,16,0.6); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px;">
+              <div style="margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#CBD5E1; margin-bottom:4px;">
+                  <span>Width (px)</span>
+                  <span id="labelPlotWidth" style="color:var(--gold-primary); font-family:'Space Grotesk', monospace;">120px</span>
+                </div>
+                <input type="range" id="sliderPlotWidth" min="60" max="260" value="120" style="width:100%; accent-color:#D4AF37;">
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#CBD5E1; margin-bottom:4px;">
+                  <span>Height (px)</span>
+                  <span id="labelPlotHeight" style="color:var(--gold-primary); font-family:'Space Grotesk', monospace;">60px</span>
+                </div>
+                <input type="range" id="sliderPlotHeight" min="40" max="180" value="60" style="width:100%; accent-color:#D4AF37;">
+              </div>
+
+              <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#CBD5E1; margin-bottom:4px;">
+                  <span>Tilt / Angle (deg)</span>
+                  <span id="labelPlotRotate" style="color:var(--gold-primary); font-family:'Space Grotesk', monospace;">0°</span>
+                </div>
+                <input type="range" id="sliderPlotRotate" min="-45" max="45" value="0" style="width:100%; accent-color:#D4AF37;">
+              </div>
+            </div>
+
+            <!-- PLOT METADATA FIELDS -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;">
+              <div>
+                <label style="font-size:0.75rem; color:#94A3B8;">Plot No</label>
+                <input type="text" id="neonPlotNo" class="form-control" value="14" placeholder="e.g. 14">
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:#94A3B8;">Status</label>
+                <select id="neonPlotStatus" class="form-control">
+                  <option value="AVAILABLE" selected>AVAILABLE</option>
+                  <option value="HOLD">HOLD</option>
+                  <option value="SOLD">SOLD</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+              <div>
+                <label style="font-size:0.75rem; color:#94A3B8;">Dimensions</label>
+                <input type="text" id="neonPlotDims" class="form-control" value="30×50 (1,500 Sq.Ft.)">
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:#94A3B8;">Facing</label>
+                <input type="text" id="neonPlotFacing" class="form-control" value="East Facing">
+              </div>
+            </div>
+
+            <div class="code-output-box" id="neonPlotCodeOutput">// Neon Plot JSON will appear here...</div>
+            <button id="btnCopyNeonPlotJSON" class="btn-gold" style="width:100%; margin-top:10px; padding:10px;">
+              <i class="fas fa-copy"></i> 📋 Copy Plot JSON
+            </button>
+          </div>
         </div>
       `;
       document.body.appendChild(modal);
@@ -232,22 +316,38 @@
       // Tab Switching
       const tab2D = modal.querySelector("#tab2DBlueprint");
       const tab360 = modal.querySelector("#tab360Hotspot");
+      const tabPlot = modal.querySelector("#tabNeonPlotPlacer");
       const panel2D = modal.querySelector("#panel2DBlueprint");
       const panel360 = modal.querySelector("#panel360Hotspot");
+      const panelPlot = modal.querySelector("#panelNeonPlotPlacer");
 
       tab2D.onclick = () => {
         tab2D.classList.add("active");
         tab360.classList.remove("active");
+        tabPlot.classList.remove("active");
         panel2D.style.display = "block";
         panel360.style.display = "none";
+        panelPlot.style.display = "none";
       };
 
       tab360.onclick = () => {
         tab360.classList.add("active");
         tab2D.classList.remove("active");
+        tabPlot.classList.remove("active");
         panel360.style.display = "block";
         panel2D.style.display = "none";
+        panelPlot.style.display = "none";
         this.update360HotspotOutput(modal);
+      };
+
+      tabPlot.onclick = () => {
+        tabPlot.classList.add("active");
+        tab2D.classList.remove("active");
+        tab360.classList.remove("active");
+        panelPlot.style.display = "block";
+        panel2D.style.display = "none";
+        panel360.style.display = "none";
+        this.updateNeonPlotOutput(modal);
       };
 
       // 2D Blueprint Click Listener
@@ -287,6 +387,177 @@
         const code = modal.querySelector("#hotspotCodeOutput").textContent;
         navigator.clipboard.writeText(code).then(() => this.showToast("📋 Hotspot JSON copied!"));
       };
+
+      // --- NEON PLOT PLACER ENGINE ---
+      const sliderW = modal.querySelector("#sliderPlotWidth");
+      const sliderH = modal.querySelector("#sliderPlotHeight");
+      const sliderRot = modal.querySelector("#sliderPlotRotate");
+      const lblW = modal.querySelector("#labelPlotWidth");
+      const lblH = modal.querySelector("#labelPlotHeight");
+      const lblRot = modal.querySelector("#labelPlotRotate");
+
+      const onPlotParamChange = () => {
+        lblW.textContent = `${sliderW.value}px`;
+        lblH.textContent = `${sliderH.value}px`;
+        lblRot.textContent = `${sliderRot.value}°`;
+        this.updateNeonPlotOutput(modal);
+        this.renderLivePlotPreview(modal);
+      };
+
+      sliderW.oninput = onPlotParamChange;
+      sliderH.oninput = onPlotParamChange;
+      sliderRot.oninput = onPlotParamChange;
+
+      modal.querySelector("#plotPitch").oninput = onPlotParamChange;
+      modal.querySelector("#plotYaw").oninput = onPlotParamChange;
+      modal.querySelector("#neonPlotNo").oninput = onPlotParamChange;
+      modal.querySelector("#neonPlotDims").oninput = onPlotParamChange;
+      modal.querySelector("#neonPlotFacing").oninput = onPlotParamChange;
+      modal.querySelector("#neonPlotStatus").onchange = onPlotParamChange;
+
+      // Click 360° Plot on Screen arming
+      const btnArm = modal.querySelector("#btnArmPlotClicker");
+      const btnArmText = modal.querySelector("#btnArmPlotClickerText");
+      let isArmActive = false;
+
+      const panoContainer = document.getElementById("fullscreenPannellumContainer") || document.body;
+
+      const panoClickListener = (e) => {
+        if (!isArmActive) return;
+        isArmActive = false;
+        btnArm.style.background = "";
+        btnArmText.textContent = "🎯 Click 360° Plot on Screen";
+
+        let pitch = -18.4, yaw = 42.1;
+        if (window.panoViewer) {
+          if (typeof window.panoViewer.mouseEventToCoords === "function") {
+            const coords = window.panoViewer.mouseEventToCoords(e);
+            if (coords && coords.length >= 2) {
+              pitch = coords[0].toFixed(1);
+              yaw = coords[1].toFixed(1);
+            } else {
+              pitch = window.panoViewer.getPitch().toFixed(1);
+              yaw = window.panoViewer.getYaw().toFixed(1);
+            }
+          } else {
+            pitch = window.panoViewer.getPitch().toFixed(1);
+            yaw = window.panoViewer.getYaw().toFixed(1);
+          }
+        }
+
+        modal.querySelector("#plotPitch").value = pitch;
+        modal.querySelector("#plotYaw").value = yaw;
+        this.updateNeonPlotOutput(modal);
+        this.renderLivePlotPreview(modal);
+        this.showToast(`🎯 Captured Plot Ground: Pitch ${pitch}, Yaw ${yaw}`);
+      };
+
+      btnArm.onclick = () => {
+        isArmActive = !isArmActive;
+        if (isArmActive) {
+          btnArm.style.background = "#059669";
+          btnArmText.textContent = "👆 Click anywhere on 360° ground now...";
+          this.showToast("Click on the 360° scene where you want to place the plot!");
+          panoContainer.addEventListener("click", panoClickListener, { once: true });
+        } else {
+          btnArm.style.background = "";
+          btnArmText.textContent = "🎯 Click 360° Plot on Screen";
+          panoContainer.removeEventListener("click", panoClickListener);
+        }
+      };
+
+      modal.querySelector("#btnCopyNeonPlotJSON").onclick = () => {
+        const code = modal.querySelector("#neonPlotCodeOutput").textContent;
+        navigator.clipboard.writeText(code).then(() => this.showToast("📋 Neon Plot JSON copied!"));
+      };
+
+      // Clean preview marker when modal closes
+      const closeBtn = modal.querySelector(".admin-close-x");
+      if (closeBtn) {
+        const origClose = closeBtn.onclick;
+        closeBtn.onclick = (e) => {
+          this.removeLivePlotPreview();
+          if (typeof origClose === "function") origClose.call(closeBtn, e);
+        };
+      }
+    },
+
+    updateNeonPlotOutput(modal) {
+      const pitch = parseFloat(modal.querySelector("#plotPitch").value) || -18.4;
+      const yaw = parseFloat(modal.querySelector("#plotYaw").value) || 42.1;
+      const width = parseInt(modal.querySelector("#sliderPlotWidth").value, 10) || 120;
+      const height = parseInt(modal.querySelector("#sliderPlotHeight").value, 10) || 60;
+      const rotateDeg = parseInt(modal.querySelector("#sliderPlotRotate").value, 10) || 0;
+      const plotNo = modal.querySelector("#neonPlotNo").value.trim() || "14";
+      const dimensions = modal.querySelector("#neonPlotDims").value.trim() || "30×50 (1,500 Sq.Ft.)";
+      const facing = modal.querySelector("#neonPlotFacing").value.trim() || "East Facing";
+      const status = modal.querySelector("#neonPlotStatus").value || "AVAILABLE";
+
+      const snippet = JSON.stringify({
+        id: `plot-${plotNo}`,
+        plotNo: plotNo,
+        pitch: pitch,
+        yaw: yaw,
+        width: width,
+        height: height,
+        rotateDeg: rotateDeg,
+        dimensions: dimensions,
+        facing: facing,
+        status: status
+      }, null, 2);
+
+      modal.querySelector("#neonPlotCodeOutput").textContent = snippet;
+    },
+
+    renderLivePlotPreview(modal) {
+      if (!window.panoViewer) return;
+      this.removeLivePlotPreview();
+
+      const pitch = parseFloat(modal.querySelector("#plotPitch").value) || -18.4;
+      const yaw = parseFloat(modal.querySelector("#plotYaw").value) || 42.1;
+      const width = parseInt(modal.querySelector("#sliderPlotWidth").value, 10) || 120;
+      const height = parseInt(modal.querySelector("#sliderPlotHeight").value, 10) || 60;
+      const rotateDeg = parseInt(modal.querySelector("#sliderPlotRotate").value, 10) || 0;
+      const plotNo = modal.querySelector("#neonPlotNo").value.trim() || "14";
+      const dimensions = modal.querySelector("#neonPlotDims").value.trim() || "30×50";
+      const status = modal.querySelector("#neonPlotStatus").value || "AVAILABLE";
+
+      const statusClass = status === "SOLD" ? "neon-plot-sold" : (status === "HOLD" ? "neon-plot-hold" : "neon-plot-available");
+
+      try {
+        const previewHotspot = {
+          id: "admin-preview-neon-plot",
+          pitch: pitch,
+          yaw: yaw,
+          type: "custom",
+          createTooltipFunc: function (div) {
+            div.classList.add("pnlm-neon-plot");
+            div.id = "admin-preview-neon-container";
+            div.innerHTML = `
+              <div class="neon-plot-box ${statusClass}" style="min-width:${width}px; min-height:${height}px; transform: rotate(${rotateDeg}deg); justify-content:center; border: 2px dashed #FFF; box-shadow: 0 0 15px rgba(212,175,55,0.8);">
+                <span>Plot #${plotNo} • ${status}</span>
+                <span class="plot-sub-size">${dimensions}</span>
+              </div>
+            `;
+          }
+        };
+
+        if (typeof window.panoViewer.addHotSpot === "function") {
+          window.panoViewer.addHotSpot(previewHotspot);
+        }
+      } catch (err) {
+        console.warn("Neon plot live preview fallback:", err);
+      }
+    },
+
+    removeLivePlotPreview() {
+      if (window.panoViewer && typeof window.panoViewer.removeHotSpot === "function") {
+        try {
+          window.panoViewer.removeHotSpot("admin-preview-neon-plot");
+        } catch (e) {}
+      }
+      const el = document.getElementById("admin-preview-neon-container");
+      if (el) el.remove();
     },
 
     updateBlueprintOutput(modal, x, y) {

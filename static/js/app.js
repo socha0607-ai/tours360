@@ -395,16 +395,20 @@
           type: "custom",
           createTooltipFunc: function (hotSpotDiv) {
             hotSpotDiv.classList.add("pnlm-neon-plot");
-            const st = (plot.status || "available").toLowerCase();
-            const statusClass = st === "available"
-              ? "neon-plot-available"
-              : (st === "sold" ? "neon-plot-sold" : "neon-plot-hold");
-            const statusLabel = st === "available" ? "AVAILABLE" : (st === "sold" ? "SOLD" : "HOLD");
+            const st = (plot.status || "AVAILABLE").toUpperCase();
+            const statusClass =
+              st === "SOLD" ? "neon-plot-sold" :
+              st === "HOLD" ? "neon-plot-hold" : "neon-plot-available";
+
+            const plotNumber = plot.plotNo || plot.number || "";
+            const w = plot.width || 110;
+            const h = plot.height || 52;
+            const rot = plot.rotateDeg || 0;
 
             hotSpotDiv.innerHTML = `
-              <div class="neon-plot-box ${statusClass}">
-                <div>PLOT #${plot.number} • ${statusLabel}</div>
-                <div class="plot-sub-size">${plot.dimensions || ''}</div>
+              <div class="neon-plot-box ${statusClass}" style="min-width:${w}px; min-height:${h}px; transform: rotate(${rot}deg); justify-content:center;">
+                <span>Plot #${plotNumber} • ${st}</span>
+                <span class="plot-sub-size">${plot.dimensions || ''}</span>
               </div>
             `;
             hotSpotDiv.addEventListener("click", function (e) {
@@ -1249,6 +1253,52 @@
     dom.modalAddPartner.classList.add("modal-open");
   }
 
+  function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise((resolve, reject) => {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      textarea.style.top = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        const ok = document.execCommand("copy");
+        document.body.removeChild(textarea);
+        ok ? resolve() : reject(new Error("Copy failed"));
+      } catch (err) {
+        document.body.removeChild(textarea);
+        reject(err);
+      }
+    });
+  }
+
+  function showTopCopyBanner(message) {
+    let banner = document.getElementById("topCopyToastBanner");
+    if (banner) banner.remove();
+
+    banner = document.createElement("div");
+    banner.id = "topCopyToastBanner";
+    banner.style.cssText =
+      "position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:10000002;" +
+      "background:rgba(11,13,16,0.96);border:1.5px solid #10B981;color:#FFFFFF;" +
+      "padding:12px 22px;border-radius:9999px;font-family:'Plus Jakarta Sans',sans-serif;" +
+      "font-size:0.86rem;font-weight:600;box-shadow:0 12px 35px rgba(0,0,0,0.9),0 0 20px rgba(16,185,129,0.35);" +
+      "display:flex;align-items:center;gap:10px;max-width:92vw;text-align:center;";
+    banner.innerHTML = `<i class="fas fa-check-circle" style="color:#10B981;font-size:1.1rem;"></i><span>${message}</span>`;
+    document.body.appendChild(banner);
+
+    setTimeout(() => {
+      banner.style.opacity = "0";
+      banner.style.transition = "opacity 0.3s ease";
+      setTimeout(() => banner.remove(), 300);
+    }, 3500);
+  }
+
   function openPlotDetailModal(plot, project) {
     if (!dom.modalPlotDetail) return;
     const badge = document.getElementById("plotDetailStatusBadge");
@@ -1258,7 +1308,7 @@
     const facing = document.getElementById("plotDetailFacing");
     const price = document.getElementById("plotDetailPrice");
     const qrImg = document.getElementById("plotShareQRImg");
-    const btnCopy = document.getElementById("btnCopyPlotLink");
+    const btnCopyPlot = document.getElementById("btnCopyPlotLink");
     const btnUnlock = document.getElementById("btnPlotUnlockRate");
 
     const statusNorm = (plot.status || "available").toLowerCase();
@@ -1270,24 +1320,48 @@
       badge.style.color = statusNorm === "available" ? "#34d399" : (statusNorm === "sold" ? "#f87171" : "#fbbf24");
     }
 
-    if (title) title.textContent = `Plot #${plot.number} • ${plot.facing || 'East Facing'}`;
+    const plotNum = plot.plotNo || plot.number || "";
+    if (title) title.textContent = `Plot #${plotNum} • ${plot.facing || 'East Facing'}`;
     if (meta) meta.textContent = `${plot.dimensions || '1,500 Sq.Ft.'} • ${plot.roadWidth || '40ft Main Road'}`;
     if (colony) colony.textContent = plot.colony || (project ? project.title : "Super Corridor");
     if (facing) facing.textContent = plot.facing || "East Facing";
     if (price) price.textContent = plot.priceText || "Unlock Rate Sheet for Offer Price";
 
-    const plotShareUrl = `${window.location.origin}/p/${project ? project.slug : 'tathastu-greens'}?plot=${plot.id}`;
+    const plotId = encodeURIComponent(plot.id || plot.plotNo || plot.number || "plot");
+    const slug = (project && project.slug) || state.currentProjectSlug || "tathastu-greens";
+    const plotUrl = `${window.location.origin}/p/${slug}?plot=${plotId}`;
+
     if (qrImg) {
-      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(plotShareUrl)}&margin=8`;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(plotUrl)}&margin=8`;
     }
 
-    if (btnCopy) {
-      btnCopy.onclick = () => {
-        navigator.clipboard.writeText(plotShareUrl).then(() => {
-          showToast(`Direct referral link for Plot #${plot.number} copied!`);
-        }).catch(() => {
-          showToast(`Plot link: ${plotShareUrl}`);
-        });
+    if (btnCopyPlot) {
+      btnCopyPlot.onclick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+          await copyTextToClipboard(plotUrl);
+          showTopCopyBanner("आपका प्लॉट लिंक कॉपी हो चुका है! अब आप इसे कहीं भी पेस्ट कर सकते हैं।");
+          const origHtml = btnCopyPlot.innerHTML;
+          btnCopyPlot.innerHTML = `<i class="fas fa-check text-gold"></i> Link Copied!`;
+          setTimeout(() => { btnCopyPlot.innerHTML = origHtml; }, 2200);
+        } catch (err) {
+          prompt("लिंक कॉपी करें:", plotUrl);
+        }
+
+        // Optional native share sheet on supported mobile browsers
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: `Plot #${plotNum || plot.id || "plot"} — Tours360`,
+              text: `Check out Plot #${plotNum || plot.id || "plot"} (${plot.dimensions || ""}) in 360°:`,
+              url: plotUrl
+            });
+          } catch (shareErr) {
+            // User cancelled native share; clipboard copy already succeeded
+          }
+        }
       };
     }
 
