@@ -12,8 +12,8 @@ RUN apk --no-cache add ca-certificates
 # Copy go module definitions
 COPY go.mod ./
 
-# Copy all source code including static/ directory for go:embed
-COPY main.go ./
+# Copy all Go source files plus static/ directory for go:embed
+COPY *.go ./
 COPY static/ ./static/
 
 # Compile completely static, stripped binary with zero external runtime dependencies
