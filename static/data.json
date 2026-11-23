@@ -304,7 +304,7 @@
       "status": "AVAILABLE",
       "priceDisplay": "₹ 52.5 Lakhs Onwards",
       "pricePerSqFt": "₹ 3,500 / Sq.Ft.",
-      "thumbnail": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=900&auto=format&fit=crop&q=80",
+      "thumbnail": "/assets/panos/colony_road40_sample.webp",
       "defaultSceneId": "tathastu_overview",
       "plotScenes": [
         { "id": "tathastu_overview", "title": "Main Gate", "icon": "fa-archway" },
@@ -639,7 +639,7 @@
         "day": {
           "time": "08:00 AM",
           "sunText": "☀️ East Sunrise | Vastu: Surya Pravesh Gateway | Morning Sun",
-          "image": "assets/panos/living_day.jpg",
+          "image": "/assets/panos/colony_road40_sample.webp",
           "brightness": 1.05,
           "contrast": 1.02,
           "ambientColor": "rgba(255, 245, 230, 0.04)"

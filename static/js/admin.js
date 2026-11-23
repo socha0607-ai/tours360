@@ -9,6 +9,16 @@
 
   const AdminEngine = {
     isUnlocked: false,
+    isAimActive: false,
+    aimRafId: null,
+    tempTargetPinId: "admin-temp-target-pin",
+    _aimClickListener: null,
+
+    plotMappingMode: null, // null | '4corner' | 'drag'
+    cornerPoints: [], // [[pitch, yaw], ...]
+    cornerPinIds: [],
+    sessionBatchPlots: [],
+    currentPlotData: null,
 
     init() {
       // 1. Check for URL parameter '?admin=true' or '#admin'
@@ -87,6 +97,8 @@
     lockAdmin() {
       this.isUnlocked = false;
       sessionStorage.removeItem("tours360_admin_active");
+      this.disableAimMode();
+      this.exitPlotMappingMode();
       const dock = document.getElementById("adminFloatingDock");
       if (dock) dock.remove();
 
@@ -112,6 +124,9 @@
         <div class="admin-dock-badge">
           <i class="fas fa-crown"></i> Admin
         </div>
+        <button id="adminBtnAimCrosshair" class="admin-dock-btn" title="Toggle 360° Precision Aiming Crosshair">
+          <i class="fas fa-crosshairs text-gold"></i> 🎯 Aim
+        </button>
         <button id="adminBtnKillSwitch" class="admin-dock-btn" title="Client Tour Kill-Switch (Live Control)">
           <i class="fas fa-power-off text-gold"></i> Kill-Switch
         </button>
@@ -134,6 +149,7 @@
 
       document.body.appendChild(dock);
 
+      document.getElementById("adminBtnAimCrosshair").onclick = () => this.toggleAimMode();
       document.getElementById("adminBtnKillSwitch").onclick = () => this.openKillSwitchModal();
       document.getElementById("adminBtnRateSheets").onclick = () => this.openRateSheetsModal();
       document.getElementById("adminBtnPinStudio").onclick = () => this.openPinStudioModal();
@@ -203,6 +219,9 @@
               <button id="btnCaptureCurrentPano" class="btn-ghost-gold" style="flex:1;">
                 <i class="fas fa-crosshairs"></i> Capture Current 360° Angle
               </button>
+              <button id="btnToggleAimFromStudio" class="btn-gold" style="flex:1;">
+                <i class="fas fa-crosshairs"></i> 🎯 Toggle Aim Crosshair
+              </button>
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
@@ -230,14 +249,24 @@
           <!-- TAB 3: 📐 NEON PLOT PLACER & RESIZER -->
           <div id="panelNeonPlotPlacer" style="display:none;">
             <p style="font-size:0.84rem; color:#CBD5E1; margin-bottom:12px;">
-              Interactive Colony Plot Boundary Placement. Click on the 360° ground to place a live preview neon box, then fine-tune width, height, and angle.
+              Interactive Colony Plot Boundary Placement. Choose a placement mode on the 360° ground to place a live preview neon box, then fine-tune width, height, and angle.
             </p>
 
-            <div style="display:flex; gap:10px; margin-bottom:14px;">
-              <button id="btnArmPlotClicker" class="btn-gold" style="flex:1; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fas fa-crosshairs"></i> <span id="btnArmPlotClickerText">🎯 Click 360° Plot on Screen</span>
+            <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+              <button id="btnSelect4Corners" class="btn-gold" style="flex:1; min-width:135px; padding:9px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fas fa-vector-square"></i> <span>🎯 4-Corner Mode</span>
+              </button>
+              <button id="btnDragBox" class="btn-gold" style="flex:1; min-width:135px; padding:9px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fas fa-hand-pointer"></i> <span>✋ Drag Box Mode</span>
+              </button>
+              <button id="btnArmPlotClicker" class="btn-ghost-gold" style="flex:1; min-width:135px; padding:9px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fas fa-crosshairs"></i> <span id="btnArmPlotClickerText">👆 1-Click Center</span>
               </button>
             </div>
+
+            <button id="btnLaunchPlotBar" class="btn-gold" style="width:100%; margin-bottom:14px; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px;">
+              <i class="fas fa-layer-group"></i> <span>🚀 Launch Fullscreen Plot Bar (Batch Queue)</span>
+            </button>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
               <div>
@@ -305,9 +334,14 @@
             </div>
 
             <div class="code-output-box" id="neonPlotCodeOutput">// Neon Plot JSON will appear here...</div>
-            <button id="btnCopyNeonPlotJSON" class="btn-gold" style="width:100%; margin-top:10px; padding:10px;">
-              <i class="fas fa-copy"></i> 📋 Copy Plot JSON
-            </button>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button id="btnCopyNeonPlotJSON" class="btn-gold" style="flex:1; padding:10px;">
+                <i class="fas fa-copy"></i> 📋 Copy Plot JSON
+              </button>
+              <button id="btnCopyBatchPlotsModal" class="btn-ghost-gold" style="flex:1; padding:10px;">
+                <i class="fas fa-layer-group"></i> 📑 Copy Batch Queue (${this.sessionBatchPlots.length})
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -471,6 +505,47 @@
         navigator.clipboard.writeText(code).then(() => this.showToast("📋 Neon Plot JSON copied!"));
       };
 
+      const btnToggleAim = modal.querySelector("#btnToggleAimFromStudio");
+      if (btnToggleAim) {
+        btnToggleAim.onclick = () => {
+          this.toggleAimMode();
+          modal.remove();
+        };
+      }
+
+      const btn4Corners = modal.querySelector("#btnSelect4Corners");
+      if (btn4Corners) {
+        btn4Corners.onclick = () => {
+          modal.remove();
+          this.openPlotBar();
+          this.start4CornerMode();
+        };
+      }
+
+      const btnDrag = modal.querySelector("#btnDragBox");
+      if (btnDrag) {
+        btnDrag.onclick = () => {
+          modal.remove();
+          this.openPlotBar();
+          this.startDragBoxMode();
+        };
+      }
+
+      const btnLaunchBar = modal.querySelector("#btnLaunchPlotBar");
+      if (btnLaunchBar) {
+        btnLaunchBar.onclick = () => {
+          modal.remove();
+          this.openPlotBar();
+        };
+      }
+
+      const btnBatchCopy = modal.querySelector("#btnCopyBatchPlotsModal");
+      if (btnBatchCopy) {
+        btnBatchCopy.onclick = () => {
+          this.copyBatchPlotsJSON();
+        };
+      }
+
       // Clean preview marker when modal closes
       const closeBtn = modal.querySelector(".admin-close-x");
       if (closeBtn) {
@@ -558,6 +633,590 @@
       }
       const el = document.getElementById("admin-preview-neon-container");
       if (el) el.remove();
+    },
+
+    // Exact mouse-to-(pitch, yaw) helper using Pannellum API
+    getCoordsFromMouseEvent(e) {
+      if (!window.panoViewer) return { pitch: 0, yaw: 0 };
+      if (typeof window.panoViewer.mouseEventToCoords === "function") {
+        const coords = window.panoViewer.mouseEventToCoords(e);
+        if (Array.isArray(coords) && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+          return { pitch: Number(coords[0].toFixed(2)), yaw: Number(coords[1].toFixed(2)) };
+        }
+      }
+      return {
+        pitch: Number((window.panoViewer.getPitch ? window.panoViewer.getPitch() : 0).toFixed(2)),
+        yaw: Number((window.panoViewer.getYaw ? window.panoViewer.getYaw() : 0).toFixed(2))
+      };
+    },
+
+    /**
+     * 1. ADMIN-ONLY 360° PRECISION AIMING CROSSHAIR & TARGET PIN
+     */
+    toggleAimMode() {
+      if (!this.isUnlocked) return;
+      if (this.isAimActive) {
+        this.disableAimMode();
+      } else {
+        this.enableAimMode();
+      }
+    },
+
+    enableAimMode() {
+      if (!this.isUnlocked) return;
+      this.disableAimMode(false);
+      this.isAimActive = true;
+
+      const reticle = document.createElement("div");
+      reticle.id = "adminAimReticle";
+      reticle.className = "admin-aim-reticle";
+      reticle.innerHTML = `
+        <div class="admin-crosshair-box">
+          <div class="admin-aim-dot"></div>
+        </div>
+        <div id="adminAimReadout" class="admin-aim-readout">Pitch: 0.0° | Yaw: 0.0°</div>
+      `;
+      document.body.appendChild(reticle);
+
+      const btn = document.getElementById("adminBtnAimCrosshair");
+      if (btn) {
+        btn.style.borderColor = "#EF4444";
+        btn.style.color = "#FFFFFF";
+        btn.innerHTML = `<i class="fas fa-crosshairs" style="color:#EF4444;"></i> 🎯 Aim Active`;
+      }
+
+      const updateReadout = () => {
+        if (!this.isAimActive || !this.isUnlocked) return;
+        if (window.panoViewer && typeof window.panoViewer.getPitch === "function") {
+          const p = window.panoViewer.getPitch().toFixed(1);
+          const y = window.panoViewer.getYaw().toFixed(1);
+          const readout = document.getElementById("adminAimReadout");
+          if (readout) readout.textContent = `Pitch: ${p}° | Yaw: ${y}°`;
+        }
+        this.aimRafId = requestAnimationFrame(updateReadout);
+      };
+      this.aimRafId = requestAnimationFrame(updateReadout);
+
+      const panoContainer = document.getElementById("fullscreenPannellumContainer") || document.body;
+      this._aimClickListener = (e) => {
+        if (!this.isAimActive || !this.isUnlocked) return;
+        if (e.target.closest("#adminFloatingDock") || e.target.closest(".admin-modal-overlay") || e.target.closest("#adminPlotBar")) {
+          return;
+        }
+
+        const coords = this.getCoordsFromMouseEvent(e);
+        this.dropTargetPin(coords.pitch, coords.yaw);
+
+        const copyText = `pitch: ${coords.pitch}, yaw: ${coords.yaw}`;
+        navigator.clipboard.writeText(copyText).then(() => {
+          this.showToast(`🎯 Aim Pin Placed & Copied! [Pitch: ${coords.pitch}, Yaw: ${coords.yaw}]`);
+        }).catch(() => {
+          this.showToast(`🎯 Aim Pin: Pitch ${coords.pitch}, Yaw ${coords.yaw}`);
+        });
+      };
+
+      panoContainer.addEventListener("click", this._aimClickListener);
+      this.showToast("🎯 Aim Crosshair active! Click anywhere on 360° to drop target pin.");
+    },
+
+    dropTargetPin(pitch, yaw) {
+      if (!this.isUnlocked || !window.panoViewer) return;
+      this.removeTargetPin();
+
+      try {
+        if (typeof window.panoViewer.addHotSpot === "function") {
+          window.panoViewer.addHotSpot({
+            id: this.tempTargetPinId,
+            pitch: pitch,
+            yaw: yaw,
+            type: "custom",
+            createTooltipFunc: (div) => {
+              div.className = "pnlm-admin-corner-pin";
+              div.id = "admin-temp-target-pin-el";
+              div.style.background = "#EF4444";
+              div.style.borderColor = "#FFFFFF";
+              div.style.color = "#FFFFFF";
+              div.style.boxShadow = "0 0 16px rgba(239, 68, 68, 0.95)";
+              div.innerHTML = "🎯";
+            }
+          });
+        }
+      } catch (err) {
+        console.warn("Drop target pin fallback:", err);
+      }
+    },
+
+    removeTargetPin() {
+      if (window.panoViewer && typeof window.panoViewer.removeHotSpot === "function") {
+        try { window.panoViewer.removeHotSpot(this.tempTargetPinId); } catch(e) {}
+      }
+      const el = document.getElementById("admin-temp-target-pin-el");
+      if (el) el.remove();
+    },
+
+    disableAimMode(resetButton = true) {
+      this.isAimActive = false;
+      if (this.aimRafId) {
+        cancelAnimationFrame(this.aimRafId);
+        this.aimRafId = null;
+      }
+      const reticle = document.getElementById("adminAimReticle");
+      if (reticle) reticle.remove();
+
+      this.removeTargetPin();
+
+      const panoContainer = document.getElementById("fullscreenPannellumContainer") || document.body;
+      if (this._aimClickListener) {
+        panoContainer.removeEventListener("click", this._aimClickListener);
+        this._aimClickListener = null;
+      }
+
+      if (resetButton) {
+        const btn = document.getElementById("adminBtnAimCrosshair");
+        if (btn) {
+          btn.style.borderColor = "";
+          btn.style.color = "";
+          btn.innerHTML = `<i class="fas fa-crosshairs text-gold"></i> 🎯 Aim`;
+        }
+      }
+    },
+
+    /**
+     * 2. ADMIN-ONLY 4-POINT POLYGON & DRAG NEON PLOT PLACER
+     */
+    start4CornerMode(onComplete) {
+      if (!this.isUnlocked) return;
+      this.clearCornerPins();
+      this.cornerPoints = [];
+      this.plotMappingMode = "4corner";
+
+      const panoContainer = document.getElementById("fullscreenPannellumContainer") || document.body;
+      panoContainer.style.cursor = "crosshair";
+
+      this.showToast("🎯 Step 1/4: Click Corner 1 on the 360° plot");
+
+      const onCornerClick = (e) => {
+        if (this.plotMappingMode !== "4corner" || !this.isUnlocked) {
+          panoContainer.removeEventListener("click", onCornerClick);
+          panoContainer.style.cursor = "";
+          return;
+        }
+
+        if (e.target.closest("#adminPlotBar") || e.target.closest("#adminFloatingDock") || e.target.closest(".admin-modal-overlay")) {
+          return;
+        }
+
+        const coords = this.getCoordsFromMouseEvent(e);
+        const idx = this.cornerPoints.length + 1;
+        this.cornerPoints.push([coords.pitch, coords.yaw]);
+
+        this.addCornerPin(idx, coords.pitch, coords.yaw);
+
+        if (idx < 4) {
+          this.showToast(`🎯 Step ${idx + 1}/4: Click Corner ${idx + 1} on the plot`);
+        } else {
+          panoContainer.removeEventListener("click", onCornerClick);
+          panoContainer.style.cursor = "";
+          this.plotMappingMode = null;
+
+          const p = this.cornerPoints;
+          const centerPitch = Number(((p[0][0] + p[1][0] + p[2][0] + p[3][0]) / 4).toFixed(2));
+          const centerYaw = Number(((p[0][1] + p[1][1] + p[2][1] + p[3][1]) / 4).toFixed(2));
+
+          const minP = Math.min(p[0][0], p[1][0], p[2][0], p[3][0]);
+          const maxP = Math.max(p[0][0], p[1][0], p[2][0], p[3][0]);
+          const minY = Math.min(p[0][1], p[1][1], p[2][1], p[3][1]);
+          const maxY = Math.max(p[0][1], p[1][1], p[2][1], p[3][1]);
+
+          const deltaYaw = Math.abs(maxY - minY);
+          const deltaPitch = Math.abs(maxP - minP);
+
+          const width = Math.round(Math.max(60, Math.min(320, deltaYaw * 9.5)));
+          const height = Math.round(Math.max(40, Math.min(220, deltaPitch * 9.5)));
+
+          const dy = p[1][0] - p[0][0];
+          const dx = p[1][1] - p[0][1];
+          let rotateDeg = Math.round(Math.atan2(dy, dx) * (180 / Math.PI));
+          if (rotateDeg < -45) rotateDeg = -45;
+          if (rotateDeg > 45) rotateDeg = 45;
+
+          this.currentPlotData = {
+            pitch: centerPitch,
+            yaw: centerYaw,
+            width: width,
+            height: height,
+            rotateDeg: rotateDeg,
+            corners: [...this.cornerPoints]
+          };
+
+          this.renderLivePlotPreviewFromData(this.currentPlotData);
+          this.syncPlotInputs();
+
+          this.showToast(`✅ 4 Corners Captured! Center: Pitch ${centerPitch}, Yaw ${centerYaw}`);
+          if (typeof onComplete === "function") onComplete(this.currentPlotData);
+        }
+      };
+
+      panoContainer.addEventListener("click", onCornerClick);
+    },
+
+    addCornerPin(index, pitch, yaw) {
+      if (!this.isUnlocked || !window.panoViewer) return;
+      const pinId = `admin-corner-pin-${index}-${Date.now()}`;
+      this.cornerPinIds.push(pinId);
+
+      try {
+        if (typeof window.panoViewer.addHotSpot === "function") {
+          window.panoViewer.addHotSpot({
+            id: pinId,
+            pitch: pitch,
+            yaw: yaw,
+            type: "custom",
+            createTooltipFunc: (div) => {
+              div.className = "pnlm-admin-corner-pin";
+              div.innerHTML = `${index}`;
+            }
+          });
+        }
+      } catch (err) {
+        console.warn("Corner pin add fallback:", err);
+      }
+    },
+
+    clearCornerPins() {
+      if (window.panoViewer && typeof window.panoViewer.removeHotSpot === "function") {
+        this.cornerPinIds.forEach(id => {
+          try { window.panoViewer.removeHotSpot(id); } catch(e) {}
+        });
+      }
+      this.cornerPinIds = [];
+      document.querySelectorAll(".pnlm-admin-corner-pin").forEach(el => el.remove());
+    },
+
+    startDragBoxMode(onComplete) {
+      if (!this.isUnlocked) return;
+      this.clearCornerPins();
+      this.plotMappingMode = "drag";
+
+      const panoContainer = document.getElementById("fullscreenPannellumContainer") || document.body;
+      panoContainer.style.cursor = "crosshair";
+
+      this.showToast("✋ Drag Box Mode: Click & drag over plot on 360° screen");
+
+      let startX = 0, startY = 0;
+      let startCoords = null;
+      let isDragging = false;
+      let boxEl = null;
+
+      const onMouseDown = (e) => {
+        if (this.plotMappingMode !== "drag" || !this.isUnlocked) return;
+        if (e.target.closest("#adminPlotBar") || e.target.closest("#adminFloatingDock") || e.target.closest(".admin-modal-overlay")) {
+          return;
+        }
+
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startCoords = this.getCoordsFromMouseEvent(e);
+
+        boxEl = document.createElement("div");
+        boxEl.className = "admin-drag-select-box";
+        boxEl.style.left = `${startX}px`;
+        boxEl.style.top = `${startY}px`;
+        boxEl.style.width = "0px";
+        boxEl.style.height = "0px";
+        document.body.appendChild(boxEl);
+
+        const onMouseMove = (ev) => {
+          if (!isDragging || !boxEl) return;
+          const curX = ev.clientX;
+          const curY = ev.clientY;
+          const left = Math.min(startX, curX);
+          const top = Math.min(startY, curY);
+          const w = Math.abs(curX - startX);
+          const h = Math.abs(curY - startY);
+
+          boxEl.style.left = `${left}px`;
+          boxEl.style.top = `${top}px`;
+          boxEl.style.width = `${w}px`;
+          boxEl.style.height = `${h}px`;
+        };
+
+        const onMouseUp = (ev) => {
+          if (!isDragging) return;
+          isDragging = false;
+          window.removeEventListener("mousemove", onMouseMove);
+          window.removeEventListener("mouseup", onMouseUp);
+          panoContainer.removeEventListener("mousedown", onMouseDown);
+          panoContainer.style.cursor = "";
+          this.plotMappingMode = null;
+
+          const endCoords = this.getCoordsFromMouseEvent(ev);
+          if (boxEl) {
+            boxEl.remove();
+            boxEl = null;
+          }
+
+          const curX = ev.clientX;
+          const curY = ev.clientY;
+          const w = Math.round(Math.max(60, Math.min(320, Math.abs(curX - startX))));
+          const h = Math.round(Math.max(40, Math.min(220, Math.abs(curY - startY))));
+
+          const centerPitch = Number(((startCoords.pitch + endCoords.pitch) / 2).toFixed(2));
+          const centerYaw = Number(((startCoords.yaw + endCoords.yaw) / 2).toFixed(2));
+
+          this.currentPlotData = {
+            pitch: centerPitch,
+            yaw: centerYaw,
+            width: w,
+            height: h,
+            rotateDeg: 0
+          };
+
+          this.renderLivePlotPreviewFromData(this.currentPlotData);
+          this.syncPlotInputs();
+
+          this.showToast(`✅ Drag Box Placed! Center: Pitch ${centerPitch}, Yaw ${centerYaw}`);
+          if (typeof onComplete === "function") onComplete(this.currentPlotData);
+        };
+
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
+      };
+
+      panoContainer.addEventListener("mousedown", onMouseDown, { once: true });
+    },
+
+    openPlotBar() {
+      if (!this.isUnlocked) return;
+      this.exitPlotMappingMode();
+
+      const existing = document.getElementById("adminPlotBar");
+      if (existing) existing.remove();
+
+      const bar = document.createElement("div");
+      bar.id = "adminPlotBar";
+      bar.className = "admin-plot-bar";
+
+      bar.innerHTML = `
+        <div style="display:flex; align-items:center; gap:6px; font-weight:800; color:#D4AF37; font-size:0.85rem;">
+          <i class="fas fa-draw-polygon"></i> <span>Plot Placer</span>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button id="barBtn4Corners" class="admin-dock-btn" style="padding:5px 9px;" title="Select 4 Corners">🎯 4 Corners</button>
+          <button id="barBtnDrag" class="admin-dock-btn" style="padding:5px 9px;" title="Drag Box on Screen">✋ Drag Box</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <input type="text" id="barPlotNo" style="width:58px;" placeholder="Plot#" value="${this.getNextPlotNumber()}">
+          <input type="text" id="barPlotDims" style="width:115px;" placeholder="Dims" value="30×50 (1,500 Sq.Ft.)">
+          <input type="text" id="barPlotFacing" style="width:85px;" placeholder="Facing" value="East Facing">
+          <select id="barPlotStatus" style="width:95px;">
+            <option value="AVAILABLE" selected>AVAILABLE</option>
+            <option value="HOLD">HOLD</option>
+            <option value="SOLD">SOLD</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button id="barBtnSaveNext" class="btn-gold" style="padding:6px 12px; font-size:0.75rem; border-radius:8px;">
+            <i class="fas fa-plus-circle"></i> + Save &amp; Map Next
+          </button>
+          <button id="barBtnCopyAll" class="admin-dock-btn" style="padding:5px 9px;" title="Copy all mapped plots JSON">
+            <i class="fas fa-copy"></i> Copy All (${this.sessionBatchPlots.length})
+          </button>
+          <button id="barBtnClose" class="admin-close-x" style="width:26px; height:26px; font-size:0.9rem;">&times;</button>
+        </div>
+      `;
+
+      document.body.appendChild(bar);
+
+      document.getElementById("barBtn4Corners").onclick = () => this.start4CornerMode();
+      document.getElementById("barBtnDrag").onclick = () => this.startDragBoxMode();
+      document.getElementById("barBtnSaveNext").onclick = () => this.saveAndMapNextPlot();
+      document.getElementById("barBtnCopyAll").onclick = () => this.copyBatchPlotsJSON();
+      document.getElementById("barBtnClose").onclick = () => this.exitPlotMappingMode();
+
+      this.start4CornerMode();
+    },
+
+    exitPlotMappingMode() {
+      this.plotMappingMode = null;
+      this.clearCornerPins();
+      this.removeLivePlotPreview();
+      const bar = document.getElementById("adminPlotBar");
+      if (bar) bar.remove();
+      const dragBox = document.querySelector(".admin-drag-select-box");
+      if (dragBox) dragBox.remove();
+      const panoContainer = document.getElementById("fullscreenPannellumContainer");
+      if (panoContainer) panoContainer.style.cursor = "";
+    },
+
+    getNextPlotNumber() {
+      if (this.sessionBatchPlots.length > 0) {
+        const lastPlot = this.sessionBatchPlots[this.sessionBatchPlots.length - 1];
+        const num = parseInt(String(lastPlot.plotNo || lastPlot.id).replace(/\D/g, ""), 10);
+        if (!isNaN(num)) {
+          return String(num + 1).padStart(2, "0");
+        }
+      }
+      return "01";
+    },
+
+    saveAndMapNextPlot() {
+      if (!this.currentPlotData) {
+        this.showToast("⚠️ Place corners or drag a box first before saving!");
+        return;
+      }
+
+      const plotNoEl = document.getElementById("barPlotNo");
+      const dimsEl = document.getElementById("barPlotDims");
+      const facingEl = document.getElementById("barPlotFacing");
+      const statusEl = document.getElementById("barPlotStatus");
+
+      const plotNo = (plotNoEl ? plotNoEl.value.trim() : "") || this.getNextPlotNumber();
+      const dims = (dimsEl ? dimsEl.value.trim() : "") || "30×50 (1,500 Sq.Ft.)";
+      const facing = (facingEl ? facingEl.value.trim() : "") || "East Facing";
+      const status = (statusEl ? statusEl.value : "") || "AVAILABLE";
+
+      const plotObj = {
+        id: `plot-${plotNo}`,
+        plotNo: plotNo,
+        pitch: this.currentPlotData.pitch,
+        yaw: this.currentPlotData.yaw,
+        width: this.currentPlotData.width,
+        height: this.currentPlotData.height,
+        rotateDeg: this.currentPlotData.rotateDeg || 0,
+        dimensions: dims,
+        facing: facing,
+        status: status
+      };
+
+      if (this.currentPlotData.corners) {
+        plotObj.corners = this.currentPlotData.corners;
+      }
+
+      this.sessionBatchPlots.push(plotObj);
+      this.renderPermanentBatchHotspot(plotObj);
+
+      this.showToast(`✅ Saved Plot #${plotNo}! Total mapped: ${this.sessionBatchPlots.length}`);
+
+      const copyBtn = document.getElementById("barBtnCopyAll");
+      if (copyBtn) {
+        copyBtn.innerHTML = `<i class="fas fa-copy"></i> Copy All (${this.sessionBatchPlots.length})`;
+      }
+
+      if (plotNoEl) {
+        plotNoEl.value = this.getNextPlotNumber();
+      }
+
+      this.currentPlotData = null;
+      this.clearCornerPins();
+      this.removeLivePlotPreview();
+
+      setTimeout(() => this.start4CornerMode(), 350);
+    },
+
+    copyBatchPlotsJSON() {
+      if (!this.sessionBatchPlots || this.sessionBatchPlots.length === 0) {
+        this.showToast("⚠️ No plots mapped in batch queue yet.");
+        return;
+      }
+      const jsonStr = JSON.stringify(this.sessionBatchPlots, null, 2);
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        this.showToast(`📋 Copied ${this.sessionBatchPlots.length} plots JSON to clipboard!`);
+      });
+    },
+
+    renderPermanentBatchHotspot(plot) {
+      if (!window.panoViewer || typeof window.panoViewer.addHotSpot !== "function") return;
+      const st = (plot.status || "AVAILABLE").toUpperCase();
+      const statusClass = st === "SOLD" ? "neon-plot-sold" : (st === "HOLD" ? "neon-plot-hold" : "neon-plot-available");
+      const hsId = `batch-plot-${plot.id}-${Date.now()}`;
+
+      try {
+        window.panoViewer.addHotSpot({
+          id: hsId,
+          pitch: plot.pitch,
+          yaw: plot.yaw,
+          type: "custom",
+          createTooltipFunc: (div) => {
+            div.classList.add("pnlm-neon-plot");
+            div.innerHTML = `
+              <div class="neon-plot-box ${statusClass}" style="min-width:${plot.width}px; min-height:${plot.height}px; width:${plot.width}px; height:${plot.height}px; transform: rotate(${plot.rotateDeg || 0}deg); justify-content:center;">
+                <span>Plot #${plot.plotNo || plot.id} • ${st}</span>
+                <span class="plot-sub-size">${plot.dimensions || ''}</span>
+              </div>
+            `;
+          }
+        });
+      } catch (err) {
+        console.warn("Permanent batch hotspot fallback:", err);
+      }
+    },
+
+    renderLivePlotPreviewFromData(plotData) {
+      if (!window.panoViewer || !plotData) return;
+      this.removeLivePlotPreview();
+
+      const statusEl = document.getElementById("barPlotStatus") || document.getElementById("neonPlotStatus");
+      const status = statusEl ? statusEl.value : "AVAILABLE";
+      const statusClass = status === "SOLD" ? "neon-plot-sold" : (status === "HOLD" ? "neon-plot-hold" : "neon-plot-available");
+
+      const plotNoEl = document.getElementById("barPlotNo") || document.getElementById("neonPlotNo");
+      const plotNo = plotNoEl ? plotNoEl.value : "1";
+
+      const dimsEl = document.getElementById("barPlotDims") || document.getElementById("neonPlotDims");
+      const dimensions = dimsEl ? dimsEl.value : "";
+
+      try {
+        const previewHotspot = {
+          id: "admin-preview-neon-plot",
+          pitch: plotData.pitch,
+          yaw: plotData.yaw,
+          type: "custom",
+          createTooltipFunc: (div) => {
+            div.classList.add("pnlm-neon-plot");
+            div.id = "admin-preview-neon-container";
+            div.innerHTML = `
+              <div class="neon-plot-box ${statusClass}" style="min-width:${plotData.width}px; min-height:${plotData.height}px; width:${plotData.width}px; height:${plotData.height}px; transform: rotate(${plotData.rotateDeg || 0}deg); justify-content:center; border: 2px dashed #FFF; box-shadow: 0 0 15px rgba(212,175,55,0.85);">
+                <span>Plot #${plotNo} • ${status}</span>
+                <span class="plot-sub-size">${dimensions}</span>
+              </div>
+            `;
+          }
+        };
+
+        if (typeof window.panoViewer.addHotSpot === "function") {
+          window.panoViewer.addHotSpot(previewHotspot);
+        }
+      } catch (err) {
+        console.warn("Neon plot live preview fallback:", err);
+      }
+    },
+
+    syncPlotInputs() {
+      if (!this.currentPlotData) return;
+      const pitchInput = document.getElementById("plotPitch");
+      const yawInput = document.getElementById("plotYaw");
+      const sliderW = document.getElementById("sliderPlotWidth");
+      const sliderH = document.getElementById("sliderPlotHeight");
+      const sliderRot = document.getElementById("sliderPlotRotate");
+      const lblW = document.getElementById("labelPlotWidth");
+      const lblH = document.getElementById("labelPlotHeight");
+      const lblRot = document.getElementById("labelPlotRotate");
+
+      if (pitchInput) pitchInput.value = this.currentPlotData.pitch;
+      if (yawInput) yawInput.value = this.currentPlotData.yaw;
+      if (sliderW) sliderW.value = this.currentPlotData.width;
+      if (sliderH) sliderH.value = this.currentPlotData.height;
+      if (sliderRot) sliderRot.value = this.currentPlotData.rotateDeg;
+
+      if (lblW) lblW.textContent = `${this.currentPlotData.width}px`;
+      if (lblH) lblH.textContent = `${this.currentPlotData.height}px`;
+      if (lblRot) lblRot.textContent = `${this.currentPlotData.rotateDeg}°`;
+
+      const modal = document.querySelector(".admin-modal-overlay");
+      if (modal) this.updateNeonPlotOutput(modal);
     },
 
     updateBlueprintOutput(modal, x, y) {

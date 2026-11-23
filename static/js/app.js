@@ -406,7 +406,7 @@
             const rot = plot.rotateDeg || 0;
 
             hotSpotDiv.innerHTML = `
-              <div class="neon-plot-box ${statusClass}" style="min-width:${w}px; min-height:${h}px; transform: rotate(${rot}deg); justify-content:center;">
+              <div class="neon-plot-box ${statusClass}" style="width:${w}px; min-width:${w}px; height:${h}px; min-height:${h}px; transform: rotate(${rot}deg); justify-content:center;">
                 <span>Plot #${plotNumber} • ${st}</span>
                 <span class="plot-sub-size">${plot.dimensions || ''}</span>
               </div>

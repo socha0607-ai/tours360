@@ -261,3 +261,150 @@
     justify-content: flex-start !important;
   }
 }
+
+/* ==========================================================================
+   ADMIN-ONLY 360° PRECISION AIMING CROSSHAIR & 4-POINT / DRAG NEON PLACER
+   ========================================================================== */
+
+/* Admin-Only 360 Precision Aiming Crosshair */
+.admin-aim-reticle {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999990;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.admin-crosshair-box {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.admin-crosshair-box::before,
+.admin-crosshair-box::after {
+  content: "";
+  position: absolute;
+  background: rgba(212, 175, 55, 0.85);
+}
+
+.admin-crosshair-box::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  transform: translateY(-50%);
+}
+
+.admin-crosshair-box::after {
+  left: 50%;
+  top: 0;
+  height: 100%;
+  width: 1.5px;
+  transform: translateX(-50%);
+}
+
+.admin-aim-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  background: #EF4444;
+  border: 1.5px solid #FFFFFF;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px #EF4444;
+}
+
+.admin-aim-readout {
+  margin-top: 8px;
+  background: rgba(11, 13, 16, 0.92);
+  border: 1px solid #D4AF37;
+  color: #FCEBA7;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* Temporary Admin Target / Corner Marker inside Pannellum */
+.pnlm-admin-corner-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #D4AF37;
+  color: #0B0D10;
+  border: 2px solid #FFFFFF;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.95);
+  pointer-events: none;
+}
+
+/* Drag-Select Overlay Box */
+.admin-drag-select-box {
+  position: fixed;
+  border: 2px dashed #10B981;
+  background: rgba(16, 185, 129, 0.18);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  z-index: 999991;
+  pointer-events: none;
+}
+
+/* Floating Admin Plot Mapping Bar */
+.admin-plot-bar {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999995;
+  background: rgba(11, 13, 16, 0.96);
+  border: 1.5px solid #D4AF37;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.95), 0 0 25px rgba(212, 175, 55, 0.35);
+  border-radius: 14px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: adminPlotBarSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #FFFFFF;
+}
+
+@keyframes adminPlotBarSlideDown {
+  from { transform: translate(-50%, -40px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.admin-plot-bar input,
+.admin-plot-bar select {
+  background: #151921;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #FFFFFF;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.78rem;
+  outline: none;
+}
+
+.admin-plot-bar input:focus,
+.admin-plot-bar select:focus {
+  border-color: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+}
+
