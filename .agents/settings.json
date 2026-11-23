@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "deny": [
+      "Bash(rm *)",
+      "Bash(rm -rf *)",
+      "Bash(rmdir *)",
+      "Bash(unlink *)",
+      "Bash(shred *)",
+      "Bash(git clean *)",
+      "Bash(git reset --hard *)",
+      "Bash(git push *)"
+    ],
+    "allow": [
+      "Read(**)",
+      "Edit(**)",
+      "Write(**)",
+      "Bash(go *)",
+      "Bash(python3 *)",
+      "Bash(ls *)",
+      "Bash(du *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv staging_uploads/* *)"
+    ]
+  }
+}

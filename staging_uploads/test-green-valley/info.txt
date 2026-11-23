@@ -1,0 +1,25 @@
+TYPE: plotting
+DEVELOPER_NAME: Green Valley Developers (TEST)
+DEVELOPER_SLUG: green-valley-dev
+RERA_NO: P-IND-26-TEST01
+SALES_HEAD: Kamlesh Test
+SALES_PHONE: +91 8261098681
+WHATSAPP: 918261098681
+
+PROJECT_NAME: Green Valley Test Colony
+PROJECT_SLUG: test-green-valley
+LOCATION: Super Corridor, Indore
+TOTAL_AREA: 20 Bigha
+PLOT_SIZES: 1000 - 2000 Sq.Ft
+
+AERIAL_SCENE: aerial.jpg
+
+LANDMARK_ZONES (No Day/Night — Colony Highlights):
+- Main Gate: pano_pitch=-18, pano_yaw=15, svg_x=120, svg_y=300
+- Mandir Area: pano_pitch=-22, pano_yaw=85, svg_x=260, svg_y=180
+- 60ft Main Road: pano_pitch=-25, pano_yaw=140, svg_x=200, svg_y=250
+- Clubhouse & Garden: pano_pitch=-20, pano_yaw=-60, svg_x=380, svg_y=210
+
+PLOT_PINS:
+- Plot 01: svg_x=180, svg_y=140 | pano_pitch=-22, pano_yaw=35 | size="1500 sqft" | status="available"
+- Plot 02: svg_x=230, svg_y=140 | pano_pitch=-22, pano_yaw=50 | size="1200 sqft" | status="sold"

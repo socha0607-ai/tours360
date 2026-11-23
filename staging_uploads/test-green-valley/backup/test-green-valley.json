@@ -1,0 +1,61 @@
+{
+  "slug": "test-green-valley",
+  "builderSlug": "green-valley-dev",
+  "title": "Green Valley Test Colony — Super Corridor Plottings",
+  "mode": "plot",
+  "plotScenes": [
+    { "id": "valley_overview", "title": "Aerial Master View", "icon": "fa-drone" },
+    { "id": "main_gate", "title": "Main Gate", "icon": "fa-archway" },
+    { "id": "mandir_area", "title": "Mandir Area", "icon": "fa-om" },
+    { "id": "main_road", "title": "60ft Main Road", "icon": "fa-road" }
+  ],
+  "colonyPlan": {
+    "svgSrc": "assets/images/test_green_valley_layout.svg",
+    "title": "Green Valley Colony Layout (TNCP Map)",
+    "pins": [
+      { "sceneId": "valley_overview", "title": "Main Entrance Gate", "x": 13, "y": 50, "type": "gate" },
+      { "sceneId": "valley_overview", "title": "Colony Mandir Area", "x": 29, "y": 30, "type": "temple" },
+      { "sceneId": "valley_overview", "title": "60ft Boulevard", "x": 22, "y": 42, "type": "road" },
+      { "sceneId": "valley_overview", "title": "Clubhouse & Landscaped Garden", "x": 42, "y": 35, "type": "garden" },
+      { "sceneId": "valley_overview", "title": "Plot 01 (1,500 Sq.Ft.)", "x": 20, "y": 23, "type": "plot" },
+      { "sceneId": "valley_overview", "title": "Plot 02 (1,200 Sq.Ft.)", "x": 26, "y": 23, "type": "plot" }
+    ]
+  },
+  "rateSheet": {
+    "csvUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=0",
+    "editUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit",
+    "assignedTo": "Green Valley Developers (Sales Head: Kamlesh Test)"
+  },
+  "scenes": {
+    "valley_overview": {
+      "title": "Aerial Master View & Sector Layout",
+      "image": "assets/panos/test_green_valley_aerial.jpg",
+      "plotHotspots": [
+        {
+          "id": "plot-01",
+          "pitch": -22,
+          "yaw": 35,
+          "status": "available",
+          "number": "01",
+          "dimensions": "30 × 50 ft (1,500 Sq.Ft.)",
+          "facing": "East Facing",
+          "colony": "Green Valley • Super Corridor",
+          "priceText": "₹ 52.50 Lakhs",
+          "roadWidth": "60ft Main Road"
+        },
+        {
+          "id": "plot-02",
+          "pitch": -22,
+          "yaw": 50,
+          "status": "sold",
+          "number": "02",
+          "dimensions": "30 × 40 ft (1,200 Sq.Ft.)",
+          "facing": "North Facing",
+          "colony": "Green Valley • Super Corridor",
+          "priceText": "Sold Out",
+          "roadWidth": "40ft Road"
+        }
+      ]
+    }
+  }
+}

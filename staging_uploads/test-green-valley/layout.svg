@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B0D10"/>
+      <stop offset="100%" stop-color="#151921"/>
+    </linearGradient>
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="900" height="600" fill="url(#bgGrad)" rx="16" stroke="#D4AF37" stroke-width="1.5" stroke-opacity="0.3"/>
+
+  <!-- Vastu Mandala Grid Guidelines -->
+  <path d="M 50 50 H 850 V 550 H 50 Z" fill="none" stroke="#D4AF37" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>
+  <line x1="316" y1="50" x2="316" y2="550" stroke="#D4AF37" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.2"/>
+  <line x1="583" y1="50" x2="583" y2="550" stroke="#D4AF37" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.2"/>
+  <line x1="50" y1="216" x2="850" y2="216" stroke="#D4AF37" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.2"/>
+  <line x1="50" y1="383" x2="850" y2="383" stroke="#D4AF37" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.2"/>
+
+  <!-- 8-Direction Vastu Compass -->
+  <g transform="translate(800, 100)">
+    <circle r="42" fill="#151921" stroke="#D4AF37" stroke-width="1.5"/>
+    <polygon points="0,-36 7,-10 -7,-10" fill="#EF4444"/>
+    <polygon points="0,36 7,10 -7,10" fill="#94A3B8"/>
+    <polygon points="36,0 10,-7 10,7" fill="#D4AF37"/>
+    <polygon points="-36,0 -10,-7 -10,7" fill="#94A3B8"/>
+    <text y="-40" fill="#EF4444" font-family="'Space Grotesk', sans-serif" font-size="11" font-weight="bold" text-anchor="middle">N (उत्तर)</text>
+    <text x="46" y="4" fill="#D4AF37" font-family="'Space Grotesk', sans-serif" font-size="10" font-weight="bold">E (पूर्व)</text>
+    <text y="50" fill="#94A3B8" font-family="'Space Grotesk', sans-serif" font-size="10" font-weight="bold" text-anchor="middle">S (दक्षिण)</text>
+    <text x="-48" y="4" fill="#94A3B8" font-family="'Space Grotesk', sans-serif" font-size="10" font-weight="bold" text-anchor="end">W (पश्चिम)</text>
+    <text x="24" y="-22" fill="#FCEBA7" font-family="'Space Grotesk', sans-serif" font-size="8" font-weight="bold">ईशान्य (NE)</text>
+    <text x="24" y="28" fill="#FCEBA7" font-family="'Space Grotesk', sans-serif" font-size="8" font-weight="bold">आग्नेय (SE)</text>
+  </g>
+
+  <!-- Architectural Room 1: Grand Living & Dining Foyer -->
+  <rect x="80" y="80" width="450" height="260" fill="#1A202C" stroke="#D4AF37" stroke-width="2" rx="8"/>
+  <text x="100" y="115" fill="#FFFFFF" font-family="'Playfair Display', serif" font-size="18" font-weight="bold">Grand Living &amp; Dining Foyer</text>
+  <text x="100" y="135" fill="#D4AF37" font-family="'Space Grotesk', sans-serif" font-size="12">Ishanya (NE) Solar Axis • 32ft x 18ft</text>
+
+  <!-- Architectural Room 2: East-Facing Sunrise Balcony -->
+  <rect x="550" y="80" width="180" height="260" fill="#202A38" stroke="#10B981" stroke-width="2" stroke-dasharray="6,4" rx="8"/>
+  <text x="565" y="115" fill="#34D399" font-family="'Playfair Display', serif" font-size="16" font-weight="bold">East Balcony</text>
+  <text x="565" y="135" fill="#94A3B8" font-family="'Space Grotesk', sans-serif" font-size="11">Sunrise Deck • 10ft Deep</text>
+
+  <!-- Architectural Room 3: Chef's Modular Kitchen -->
+  <rect x="80" y="360" width="300" height="170" fill="#1E232E" stroke="#D4AF37" stroke-width="2" rx="8"/>
+  <text x="100" y="395" fill="#FFFFFF" font-family="'Playfair Display', serif" font-size="16" font-weight="bold">Chef's Kitchen</text>
+  <text x="100" y="415" fill="#D4AF37" font-family="'Space Grotesk', sans-serif" font-size="11">Agneya (SE) Fire Quadrant</text>
+
+  <!-- Architectural Room 4: Master Presidential Suite -->
+  <rect x="400" y="360" width="430" height="170" fill="#1A202C" stroke="#D4AF37" stroke-width="2" rx="8"/>
+  <text x="420" y="395" fill="#FFFFFF" font-family="'Playfair Display', serif" font-size="16" font-weight="bold">Master Presidential Suite</text>
+  <text x="420" y="415" fill="#D4AF37" font-family="'Space Grotesk', sans-serif" font-size="11">Nairrutya (SW) Prosperity Anchor</text>
+
+  <!-- Interactive Hotspot Jump Pins -->
+  <g onclick="window.parent.Tours360App.switchScene('living')" style="cursor: pointer;" filter="url(#goldGlow)">
+    <circle cx="280" cy="220" r="18" fill="#D4AF37"/>
+    <circle cx="280" cy="220" r="8" fill="#0B0D10"/>
+    <text x="280" y="255" fill="#FCEBA7" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Jump 360°</text>
+  </g>
+
+  <g onclick="window.parent.Tours360App.switchScene('balcony')" style="cursor: pointer;" filter="url(#goldGlow)">
+    <circle cx="640" cy="220" r="18" fill="#10B981"/>
+    <circle cx="640" cy="220" r="8" fill="#0B0D10"/>
+    <text x="640" y="255" fill="#34D399" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Jump 360°</text>
+  </g>
+
+  <g onclick="window.parent.Tours360App.switchScene('kitchen')" style="cursor: pointer;" filter="url(#goldGlow)">
+    <circle cx="220" cy="450" r="18" fill="#D4AF37"/>
+    <circle cx="220" cy="450" r="8" fill="#0B0D10"/>
+    <text x="220" y="485" fill="#FCEBA7" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Jump 360°</text>
+  </g>
+
+  <g onclick="window.parent.Tours360App.switchScene('master')" style="cursor: pointer;" filter="url(#goldGlow)">
+    <circle cx="610" cy="450" r="18" fill="#D4AF37"/>
+    <circle cx="610" cy="450" r="8" fill="#0B0D10"/>
+    <text x="610" y="485" fill="#FCEBA7" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold" text-anchor="middle">Jump 360°</text>
+  </g>
+</svg>
